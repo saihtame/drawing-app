@@ -1,17 +1,19 @@
 #pragma once
-#include <glm/ext/vector_int2.hpp>
-
+#include <glm/ext/vector_uint2.hpp>
+#include <string>
 
 
 namespace Domain {
 
 class Layer {
 public:
-    Layer(glm::ivec2 size);
+    Layer(glm::uvec2 size);
     ~Layer() = default;
 
 private:
-    glm::ivec2 size;
+    std::string layer_name;
+    glm::uvec2 size;
+    glm::uvec2 offset = glm::uvec2(0, 0);
 };
 
 }

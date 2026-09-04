@@ -1,7 +1,14 @@
-#include <iostream>
-#include <ostream>
+#include "application/services/document_service.hpp"
+#include "presentation/editor_runtime.hpp"
+
 
 int main() {
-    std::cout << "Hello, world!" << std::endl;
-    return 0;
+    /* Initialize */
+    // Application
+    auto doc_service = std::make_shared<Application::Services::DocumentService>();
+    // Presentation
+    Presentation::EditorRuntime runtime(doc_service);
+
+    /* Run */
+    return runtime.run();
 }

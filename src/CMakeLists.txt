@@ -1,3 +1,9 @@
+set(DOMAIN_TARGET drawing_app_domain)
+set(APPLICATION_TARGET drawing_app_application)
+set(GPU_TARGET drawing_app_gpu)
+set(IO_TARGET drawing_app_io)
+set(PRESENTATION_TARGET drawing_app_presentation)
+
 add_executable(${TARGET_NAME} main.cpp)
 
 add_subdirectory(domain)
@@ -5,10 +11,6 @@ add_subdirectory(application)
 add_subdirectory(gpu)
 add_subdirectory(io)
 add_subdirectory(presentation)
-
-target_include_directories(${TARGET_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-)
 
 # Link libraries to executable
 target_link_libraries(${TARGET_NAME} PRIVATE
