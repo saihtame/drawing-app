@@ -13,7 +13,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
-find_package(SDL3 CONFIG REQUIRED)
+
+set(SDL_SHARED OFF CACHE BOOL "Build a shared version of the library" FORCE)
+set(SDL_STATIC ON CACHE BOOL "Build a static version of the library" FORCE)
+add_subdirectory(external/sdl3 EXCLUDE_FROM_ALL)
 
 add_subdirectory(external/glad)
 add_subdirectory(external/glm)
