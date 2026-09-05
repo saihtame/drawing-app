@@ -1,5 +1,6 @@
 #pragma once
 #include "application/services/document_service.hpp"
+#include "presentation/ui.hpp"
 #include <SDL3/SDL_video.h>
 #include <glm/detail/qualifier.hpp>
 #include <glm/ext/vector_int2.hpp>
@@ -34,6 +35,7 @@ private: // Members
     int window_width = 640;
     int window_height = 480;
     bool quit = false;
+    std::unique_ptr<UI> ui = nullptr;
 };
 
 }

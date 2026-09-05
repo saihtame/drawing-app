@@ -2,6 +2,7 @@
 #include <SDL3/SDL.h>
 #include <glad/gl.h>
 #include <iostream>
+#include <memory>
 #include <ostream>
 
 
@@ -41,6 +42,7 @@ int EditorRuntime::run() {
         std::cerr << "Failed to initialize windows" << std::endl;
         return -1;
     }
+    ui = std::make_unique<UI>(win, gl_context);
 
     /* Loop */
     while (!quit) {
@@ -106,6 +108,9 @@ inline void EditorRuntime::handle_input() {
             window_resized(event.window.data1, event.window.data2);
             continue;
         }
+        // Allow UI to capture events
+        if (ui->processEvent(&event))
+            continue;
     }
 }
 
@@ -113,6 +118,11 @@ inline void EditorRuntime::render() {
     // Clear screen
     glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // Render canvas
+
+    // Render UI
+    ui->render();
 
     // Swap frame buffers
     SDL_GL_SwapWindow(win);

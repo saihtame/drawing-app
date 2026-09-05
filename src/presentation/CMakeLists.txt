@@ -1,5 +1,6 @@
 add_library(${PRESENTATION_TARGET} STATIC
     editor_runtime.cpp
+    ui.cpp
 )
 
 target_include_directories(${PRESENTATION_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)

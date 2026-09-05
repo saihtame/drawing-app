@@ -1,1 +1,225 @@
 #include "ui.hpp"
+#include "imgui.h"
+#include "imgui_internal.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl3.h"
+#include <iostream>
+#include <ostream>
+
+
+namespace Presentation {
+
+UI::UI(SDL_Window* window, void* gl_context) : window(window) {
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // Enable docking
+
+    // Setup Dear ImGui style
+    setup_style();
+
+    // Setup scaling
+    float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+    style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
+ 
+    // Setup Platform/Renderer backends
+    ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+UI::~UI() {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
+    ImGui::DestroyContext();
+}
+
+bool UI::processEvent(SDL_Event* event) {
+    ImGui_ImplSDL3_ProcessEvent(event);
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    return (io.WantCaptureKeyboard || io.WantCaptureMouse);
+}
+
+void UI::render() {
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+
+    // Main Menu Bar
+    if( ImGui::BeginMainMenuBar()) {
+        // File menu
+        if (ImGui::BeginMenu("File", true)) {
+            // New File
+            if (ImGui::MenuItem("New file")) {
+                std::cout << "New file" << std::endl;
+            }
+            // Load File
+            if (ImGui::MenuItem("Load file")) {
+                std::cout << "Load file" << std::endl;
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    // Create/submit the dockspace every frame.
+    // The returned ID is the dockspace to configure.
+    ImGuiID dockspaceId = ImGui::DockSpaceOverViewport(
+        0,
+        viewport,
+        ImGuiDockNodeFlags_NoWindowMenuButton
+    );
+
+    if (first_render) {
+        first_render = false;
+        setup_first_render(dockspaceId, viewport);
+    }
+
+    ImGui::Begin("Tools");
+    ImGui::Text("I start docked on the left.");
+    ImGui::End();
+
+    ImGui::Begin("Layers");
+    ImGui::Text("I start docked on the right.");
+    ImGui::End();
+
+    ImGui::Begin("Canvas");
+    ImGui::Text("I start docked on the center.");
+    ImGui::End();
+
+    // Render frame
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+/* Theme was found at: https://github.com/ocornut/imgui/issues/707#issuecomment-4107169777 */
+inline void UI::setup_style() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    // --- 1. Sizing and Spacing (Soft & Modern) ---
+    style.WindowPadding = ImVec2(12.0f, 12.0f);
+    style.FramePadding = ImVec2(6.0f, 4.0f);
+    style.ItemSpacing = ImVec2(8.0f, 6.0f);
+    style.ScrollbarSize = 14.0f;
+    style.GrabMinSize = 12.0f;
+
+    // --- 2. Borders & Rounding ---
+    style.WindowRounding = 8.0f;
+    style.FrameRounding = 5.0f;
+    style.PopupRounding = 5.0f;
+    style.ScrollbarRounding = 12.0f;
+    style.GrabRounding = 5.0f;
+    style.TabRounding = 5.0f;
+
+    style.WindowBorderSize = 1.0f;
+    style.FrameBorderSize = 0.0f; // Minimalist look
+    style.PopupBorderSize = 1.0f;
+
+    // --- 3. The Catppuccin Mocha Palette ---
+    // Base: #1e1e2e | Mantle: #181825 | Crust: #11111b
+    // Text: #cdd6f4 | Subtext0: #a6adc8 | Surface0: #313244
+    // Lavender: #b4befe | Sapphire: #74c7ec | Mauve: #cba6f7
+
+    // Text
+    colors[ImGuiCol_Text] = ImVec4(0.80f, 0.84f, 0.96f, 1.00f); // Text
+    colors[ImGuiCol_TextDisabled] = ImVec4(0.42f, 0.45f, 0.55f, 1.00f); // Surface1
+
+    // Backgrounds
+    colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.18f, 1.00f); // Base
+    colors[ImGuiCol_ChildBg] = ImVec4(0.09f, 0.09f, 0.15f, 1.00f); // Mantle
+    colors[ImGuiCol_PopupBg] = ImVec4(0.07f, 0.07f, 0.11f, 0.96f); // Crust
+
+    // Borders
+    colors[ImGuiCol_Border] = ImVec4(0.19f, 0.20f, 0.27f, 1.00f); // Surface0
+    colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+
+    // Frames (Inputs, etc.)
+    colors[ImGuiCol_FrameBg] = ImVec4(0.19f, 0.20f, 0.27f, 1.00f); // Surface0
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.25f, 0.26f, 0.35f, 1.00f); // Surface1
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.31f, 0.32f, 0.42f, 1.00f); // Surface2
+
+    // Title Bars
+    colors[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.09f, 0.15f, 1.00f); // Mantle
+    colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.12f, 0.18f, 1.00f); // Base
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.07f, 0.07f, 0.11f, 1.00f); // Crust
+
+    // Menus
+    colors[ImGuiCol_MenuBarBg] = ImVec4(0.09f, 0.09f, 0.15f, 1.00f);
+
+    // Scrollbars
+    colors[ImGuiCol_ScrollbarBg] = ImVec4(0.09f, 0.09f, 0.15f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.32f, 0.42f, 1.00f); // Surface2
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.37f, 0.38f, 0.51f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.42f, 0.45f, 0.55f, 1.00f);
+
+    // Interactables
+    colors[ImGuiCol_CheckMark] = ImVec4(0.71f, 0.75f, 1.00f, 1.00f); // Lavender
+    colors[ImGuiCol_SliderGrab] = ImVec4(0.45f, 0.78f, 0.93f, 1.00f); // Sapphire
+    colors[ImGuiCol_SliderGrabActive] = ImVec4(0.45f, 0.78f, 0.93f, 1.00f);
+    colors[ImGuiCol_Button] = ImVec4(0.19f, 0.20f, 0.27f, 1.00f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(0.80f, 0.65f, 0.97f, 1.00f); // Mauve
+    colors[ImGuiCol_ButtonActive] = ImVec4(0.70f, 0.55f, 0.87f, 1.00f);
+    colors[ImGuiCol_Header] = ImVec4(0.19f, 0.20f, 0.27f, 1.00f);
+    colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.26f, 0.35f, 1.00f);
+    colors[ImGuiCol_HeaderActive] = ImVec4(0.31f, 0.32f, 0.42f, 1.00f);
+
+    // Tabs
+    colors[ImGuiCol_Tab] = ImVec4(0.12f, 0.12f, 0.18f, 1.00f);
+    colors[ImGuiCol_TabHovered] = ImVec4(0.31f, 0.32f, 0.42f, 1.00f);
+    colors[ImGuiCol_TabActive] = ImVec4(0.19f, 0.20f, 0.27f, 1.00f);
+    colors[ImGuiCol_TabUnfocused] = ImVec4(0.09f, 0.09f, 0.15f, 1.00f);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.12f, 0.12f, 0.18f, 1.00f);
+
+    // Misc
+    colors[ImGuiCol_PlotLines] = ImVec4(0.94f, 0.72f, 0.42f, 1.00f); // Marigold
+    colors[ImGuiCol_TextSelectedBg] = ImVec4(0.31f, 0.32f, 0.42f, 1.00f);
+    colors[ImGuiCol_NavHighlight] = ImVec4(0.71f, 0.75f, 1.00f, 1.00f); // Lavender
+
+#ifdef IMGUI_HAS_DOCK
+    colors[ImGuiCol_DockingPreview] = ImVec4(0.71f, 0.75f, 1.00f, 0.50f);
+    colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.12f, 0.12f, 0.18f, 1.00f);
+#endif
+
+}
+
+inline void UI::setup_first_render(uint32_t dockspace_id, ImGuiViewport* viewport) {
+    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
+
+    // Split 30% of the dockspace into a node on each side.
+    constexpr float side_ratio = 0.3f;
+    ImGuiID left_dock_id = ImGui::DockBuilderSplitNode(
+        dockspace_id,
+        ImGuiDir_Left,
+        side_ratio,
+        nullptr,
+        &dockspace_id
+    );
+    // The right node ratio is relative to the remaining (1 - side_ratio) node,
+    // so it is rescaled to yield a side panel of side_ratio of the full dockspace.
+    ImGuiID right_dock_id = ImGui::DockBuilderSplitNode(
+        dockspace_id,
+        ImGuiDir_Right,
+        side_ratio / (1.0f - side_ratio),
+        nullptr,
+        &dockspace_id
+    );
+
+    // The window name must exactly match the name passed to ImGui::Begin().
+    ImGui::DockBuilderDockWindow("Tools", left_dock_id);
+    ImGui::DockBuilderDockWindow("Layers", right_dock_id);
+    ImGui::DockBuilderDockWindow("Canvas", dockspace_id);
+
+    ImGui::DockBuilderFinish(dockspace_id);
+}
+
+}
+
