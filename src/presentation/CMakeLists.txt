@@ -9,6 +9,7 @@ target_link_libraries(${PRESENTATION_TARGET}
         SDL3::SDL3
         glad
         stb::image
+        imgui
     PUBLIC
         ${APPLICATION_TARGET}
         drawing_app_config
