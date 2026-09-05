@@ -18,6 +18,6 @@ find_package(SDL3 CONFIG REQUIRED)
 add_subdirectory(external/glad)
 add_subdirectory(external/glm)
 add_subdirectory(external/stb)
-add_subdirectory(external/imgui)
+include(cmake/imgui.cmake)
 add_subdirectory(src)
 
