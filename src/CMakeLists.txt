@@ -4,6 +4,11 @@ set(GPU_TARGET drawing_app_gpu)
 set(IO_TARGET drawing_app_io)
 set(PRESENTATION_TARGET drawing_app_presentation)
 
+add_library(drawing_app_config INTERFACE)
+target_compile_definitions(drawing_app_config INTERFACE
+    $<$<CONFIG:Debug>:_DEBUG=1>
+)
+
 add_executable(${TARGET_NAME} main.cpp)
 
 add_subdirectory(domain)
@@ -17,6 +22,7 @@ target_link_libraries(${TARGET_NAME} PRIVATE
     ${PRESENTATION_TARGET}
     ${IO_TARGET}
     ${GPU_TARGET}
+    drawing_app_config
 )
 
 # Compiler flags

@@ -11,5 +11,6 @@ target_link_libraries(${PRESENTATION_TARGET}
         stb::image
     PUBLIC
         ${APPLICATION_TARGET}
+        drawing_app_config
 )
 

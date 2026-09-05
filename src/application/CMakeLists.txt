@@ -7,4 +7,5 @@ target_include_directories(${APPLICATION_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(${APPLICATION_TARGET}
     PUBLIC
         ${DOMAIN_TARGET}
+        drawing_app_config
 )

@@ -9,4 +9,5 @@ target_link_libraries(${GPU_TARGET}
         glad
     PUBLIC
         ${APPLICATION_TARGET}
+        drawing_app_config
 )
