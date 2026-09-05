@@ -6,3 +6,7 @@
 	path = external/sdl3
 	url = git@github.com:libsdl-org/SDL.git
 	branch = release-3.4.x
+[submodule "external/glm"]
+	path = external/glm
+	url = git@github.com:g-truc/glm.git
+	branch = 1.0
