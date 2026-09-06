@@ -3,14 +3,12 @@
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
-#include <iostream>
-#include <ostream>
 
 
 namespace Presentation {
 
-UI::UI(Application::Documents::DocumentService& doc_service,
-       SDL_Window* window, void* gl_context) : doc_service(doc_service), window(window) {
+UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window,
+        void* gl_context) : window(window), menu_bar(doc_service) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -52,21 +50,7 @@ void UI::render() {
     ImGui::NewFrame();
 
     // Main Menu Bar
-    if( ImGui::BeginMainMenuBar()) {
-        // File menu
-        if (ImGui::BeginMenu("File", true)) {
-            // New File
-            if (ImGui::MenuItem("New file")) {
-                std::cout << "New file" << std::endl;
-            }
-            // Load File
-            if (ImGui::MenuItem("Load file")) {
-                std::cout << "Load file" << std::endl;
-            }
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
+    menu_bar.render();
 
     // Prepare dock space
     ImGuiViewport* viewport = ImGui::GetMainViewport();
