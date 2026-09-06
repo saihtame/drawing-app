@@ -1,8 +1,10 @@
 #pragma once
 #include "application/documents/document_serializer.hpp"
+#include <filesystem>
+#include <memory>
 
 
-namespace IO::Documents {
+namespace Infrastructure::IO {
 
 class DocumentFileSerializer : public Application::Documents::DocumentSerializer {
 public:

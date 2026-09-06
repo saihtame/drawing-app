@@ -1,7 +1,6 @@
 set(DOMAIN_TARGET drawing_app_domain)
 set(APPLICATION_TARGET drawing_app_application)
-set(GPU_TARGET drawing_app_gpu)
-set(IO_TARGET drawing_app_io)
+set(INFRASTRUCTURE_TARGET drawing_app_infrastructure)
 set(PRESENTATION_TARGET drawing_app_presentation)
 
 add_library(drawing_app_config INTERFACE)
@@ -13,15 +12,13 @@ add_executable(${TARGET_NAME} main.cpp)
 
 add_subdirectory(domain)
 add_subdirectory(application)
-add_subdirectory(gpu)
-add_subdirectory(io)
+add_subdirectory(infrastructure)
 add_subdirectory(presentation)
 
 # Link libraries to executable
 target_link_libraries(${TARGET_NAME} PRIVATE
     ${PRESENTATION_TARGET}
-    ${IO_TARGET}
-    ${GPU_TARGET}
+    ${INFRASTRUCTURE_TARGET}
     drawing_app_config
 )
 
