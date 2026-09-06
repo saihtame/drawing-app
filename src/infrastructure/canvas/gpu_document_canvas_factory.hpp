@@ -4,7 +4,7 @@
 
 namespace Infrastructure::Canvas {
 
-class GpuDocumentCanvasFactory : public Application::Documents::DocumentCanvasFactory {
+class GpuDocumentCanvasFactory final : public Application::Documents::DocumentCanvasFactory {
     virtual std::shared_ptr<Application::Documents::DocumentCanvas> create_canvas(const std::shared_ptr<Domain::Documents::Document>& document) override;
 };
 

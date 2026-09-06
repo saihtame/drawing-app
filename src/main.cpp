@@ -8,7 +8,8 @@ int main() {
     /* Initialize */
     Infrastructure::Canvas::GpuDocumentCanvasFactory canvas_factory;
     Infrastructure::IO::DocumentFileSerializer doc_serializer;
-    Application::Documents::DocumentService doc_service(doc_serializer, canvas_factory);
+    Application::Documents::DocumentService doc_service(
+        doc_serializer, canvas_factory);
     Presentation::EditorRuntime runtime(doc_service);
 
     /* Run */

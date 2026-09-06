@@ -4,7 +4,7 @@
 
 namespace Infrastructure::Canvas {
 
-class GpuDocumentCanvas : public Application::Documents::DocumentCanvas {
+class GpuDocumentCanvas final : public Application::Documents::DocumentCanvas {
 
 };
 
