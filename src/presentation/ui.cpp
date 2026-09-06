@@ -8,7 +8,7 @@
 namespace Presentation {
 
 UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window,
-        void* gl_context) : window(window), menu_bar(doc_service) {
+        void* gl_context) : window(window), menu_bar(doc_service, popup_manager) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -51,6 +51,9 @@ void UI::render() {
 
     // Main Menu Bar
     menu_bar.render();
+
+    // Render popups
+    popup_manager.render();
 
     // Prepare dock space
     ImGuiViewport* viewport = ImGui::GetMainViewport();

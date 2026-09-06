@@ -1,8 +1,9 @@
 #pragma once
-#include "application/documents/document_service.hpp"
-#include "presentation/menu_bar.hpp"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
+#include "application/documents/document_service.hpp"
+#include "menu_bar.hpp"
+#include "popups/popup_manager.hpp"
 
 
 // ImGui forward declarations
@@ -24,6 +25,7 @@ private: // Members
     bool first_render = true;
     SDL_Window* window;
     // UI Components:
+    Popups::PopupManager popup_manager;
     MenuBar menu_bar;
 
 private: // Render methods
