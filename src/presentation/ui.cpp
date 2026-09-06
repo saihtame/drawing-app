@@ -68,21 +68,21 @@ void UI::render() {
         ImGui::EndMainMenuBar();
     }
 
+    // Prepare dock space
     ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-    // Create/submit the dockspace every frame.
-    // The returned ID is the dockspace to configure.
     ImGuiID dockspaceId = ImGui::DockSpaceOverViewport(
         0,
         viewport,
         ImGuiDockNodeFlags_NoWindowMenuButton
     );
 
+    // Arrange ui components on first render
     if (first_render) {
         first_render = false;
         setup_first_render(dockspaceId, viewport);
     }
 
+    // Render ui components
     ImGui::Begin("Tools");
     ImGui::Text("I start docked on the left.");
     ImGui::End();
