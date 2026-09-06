@@ -6,7 +6,7 @@
 #include "layer.hpp"
 
 
-namespace Domain {
+namespace Domain::Documents {
 
 class Document {
 public:
@@ -15,13 +15,13 @@ public:
 
 public:
     int get_layer_count() const noexcept;
-    std::shared_ptr<Layer> get_layer(int ind) const;
+    Layer* get_layer(int ind) const;
     void add_layer();
     void remove_layer(int ind);
 
 private:
     std::string document_name;
-    std::list<std::shared_ptr<Layer>> layers;
+    std::list<std::unique_ptr<Layer>> layers;
     glm::uvec2 size;
 };
 

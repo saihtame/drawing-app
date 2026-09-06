@@ -1,5 +1,5 @@
 add_library(${IO_TARGET} STATIC
-    io.cpp
+    documents/file_document_service.cpp
 )
 
 target_include_directories(${IO_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)

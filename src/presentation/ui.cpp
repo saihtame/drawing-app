@@ -9,7 +9,8 @@
 
 namespace Presentation {
 
-UI::UI(SDL_Window* window, void* gl_context) : window(window) {
+UI::UI(std::shared_ptr<Application::Documents::DocumentService> doc_service,
+       SDL_Window* window, void* gl_context) : doc_service(doc_service), window(window) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -97,6 +98,37 @@ void UI::render() {
     // Render frame
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+inline void UI::setup_first_render(uint32_t dockspace_id, ImGuiViewport* viewport) {
+    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
+
+    // Split 30% of the dockspace into a node on each side.
+    constexpr float side_ratio = 0.3f;
+    ImGuiID left_dock_id = ImGui::DockBuilderSplitNode(
+        dockspace_id,
+        ImGuiDir_Left,
+        side_ratio,
+        nullptr,
+        &dockspace_id
+    );
+    // The right node ratio is relative to the remaining (1 - side_ratio) node,
+    // so it is rescaled to yield a side panel of side_ratio of the full dockspace.
+    ImGuiID right_dock_id = ImGui::DockBuilderSplitNode(
+        dockspace_id,
+        ImGuiDir_Right,
+        side_ratio / (1.0f - side_ratio),
+        nullptr,
+        &dockspace_id
+    );
+
+    // The window name must exactly match the name passed to ImGui::Begin().
+    ImGui::DockBuilderDockWindow("Tools", left_dock_id);
+    ImGui::DockBuilderDockWindow("Layers", right_dock_id);
+    ImGui::DockBuilderDockWindow("Canvas", dockspace_id);
+
+    ImGui::DockBuilderFinish(dockspace_id);
 }
 
 /* Theme was found at: https://github.com/ocornut/imgui/issues/707#issuecomment-4107169777 */
@@ -188,37 +220,6 @@ inline void UI::setup_style() {
     colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.12f, 0.12f, 0.18f, 1.00f);
 #endif
 
-}
-
-inline void UI::setup_first_render(uint32_t dockspace_id, ImGuiViewport* viewport) {
-    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-    ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
-
-    // Split 30% of the dockspace into a node on each side.
-    constexpr float side_ratio = 0.3f;
-    ImGuiID left_dock_id = ImGui::DockBuilderSplitNode(
-        dockspace_id,
-        ImGuiDir_Left,
-        side_ratio,
-        nullptr,
-        &dockspace_id
-    );
-    // The right node ratio is relative to the remaining (1 - side_ratio) node,
-    // so it is rescaled to yield a side panel of side_ratio of the full dockspace.
-    ImGuiID right_dock_id = ImGui::DockBuilderSplitNode(
-        dockspace_id,
-        ImGuiDir_Right,
-        side_ratio / (1.0f - side_ratio),
-        nullptr,
-        &dockspace_id
-    );
-
-    // The window name must exactly match the name passed to ImGui::Begin().
-    ImGui::DockBuilderDockWindow("Tools", left_dock_id);
-    ImGui::DockBuilderDockWindow("Layers", right_dock_id);
-    ImGui::DockBuilderDockWindow("Canvas", dockspace_id);
-
-    ImGui::DockBuilderFinish(dockspace_id);
 }
 
 }

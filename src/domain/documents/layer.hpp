@@ -3,7 +3,7 @@
 #include <string>
 
 
-namespace Domain {
+namespace Domain::Documents {
 
 class Layer {
 public:

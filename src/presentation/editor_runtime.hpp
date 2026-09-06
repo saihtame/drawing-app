@@ -1,5 +1,5 @@
 #pragma once
-#include "application/services/document_service.hpp"
+#include "application/documents/document_service.hpp"
 #include "presentation/ui.hpp"
 #include <SDL3/SDL_video.h>
 #include <glm/detail/qualifier.hpp>
@@ -10,11 +10,11 @@ namespace Presentation {
 
 class EditorRuntime {
 public:
-    EditorRuntime(std::shared_ptr<Application::Services::DocumentService> doc_service);
+    EditorRuntime(std::shared_ptr<Application::Documents::DocumentService> doc_service);
     ~EditorRuntime();
 
 private: // Dependencies
-    std::shared_ptr<Application::Services::DocumentService> doc_service;
+    std::shared_ptr<Application::Documents::DocumentService> doc_service;
 
 public: // Public methods
     int run();
