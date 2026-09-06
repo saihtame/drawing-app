@@ -13,7 +13,7 @@ int Document::get_layer_count() const noexcept {
 
 Layer* Document::get_layer(int ind) const {
     // Check index
-    if (ind > layers.size() || ind < 0)
+    if (ind >= layers.size() || ind < 0)
         throw std::invalid_argument("Layer index invalid: " + std::to_string(ind));
 
     auto it = std::next(layers.begin(), ind);
@@ -30,7 +30,7 @@ void Document::add_layer() {
 
 void Document::remove_layer(int ind) {
     // Check index
-    if (ind > layers.size() || ind < 0)
+    if (ind >= layers.size() || ind < 0)
         throw std::invalid_argument("Layer index invalid: " + std::to_string(ind));
 
     auto it = std::next(layers.begin(), ind);

@@ -1,12 +1,12 @@
+#include "application/documents/document_service.hpp"
+#include "io/documents/document_file_serializer.hpp"
 #include "presentation/editor_runtime.hpp"
-#include "io/documents/file_document_service.hpp"
 
 
 int main() {
     /* Initialize */
-    // Application
-    IO::Documents::FileDocumentService doc_service;
-    // Presentation
+    IO::Documents::DocumentFileSerializer doc_serializer;
+    Application::Documents::DocumentService doc_service(doc_serializer);
     Presentation::EditorRuntime runtime(doc_service);
 
     /* Run */

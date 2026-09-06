@@ -19,11 +19,7 @@ public:
     void add_layer();
     void remove_layer(int ind);
 
-public: // Operators
-    bool operator==(const Document&) const = default;
-
 private:
-    std::string document_name;
     std::list<std::unique_ptr<Layer>> layers;
     glm::uvec2 size;
 };

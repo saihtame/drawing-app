@@ -25,7 +25,6 @@ bool NewFilePopup::render() {
     if (ImGui::Button("Create")) {
         auto document = std::make_shared<Domain::Documents::Document>(size);
         doc_service.add_document(document);
-        doc_service.set_active_document(document);
         ImGui::CloseCurrentPopup();
     }
 

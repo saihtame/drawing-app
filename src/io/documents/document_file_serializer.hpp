@@ -1,10 +1,14 @@
 #pragma once
-#include "application/documents/document_service.hpp"
+#include "application/documents/document_serializer.hpp"
 
 
 namespace IO::Documents {
 
-class FileDocumentService : public Application::Documents::DocumentService {
+class DocumentFileSerializer : public Application::Documents::DocumentSerializer {
+public:
+    DocumentFileSerializer() = default;
+    ~DocumentFileSerializer() = default;
+
 public:
     virtual std::shared_ptr<Domain::Documents::Document> load_document(std::filesystem::path path) override;
     virtual void save_document(std::filesystem::path, const std::shared_ptr<Domain::Documents::Document>& document) override;

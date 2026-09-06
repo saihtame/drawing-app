@@ -1,5 +1,5 @@
 add_library(${IO_TARGET} STATIC
-    documents/file_document_service.cpp
+    documents/document_file_serializer.cpp
 )
 
 target_include_directories(${IO_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)
