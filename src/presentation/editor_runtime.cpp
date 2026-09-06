@@ -84,12 +84,13 @@ inline int EditorRuntime::initialize_window() {
         return -1;
     }
 
+#ifdef _DEBUG
     // Enable OpenGL debug messages to the callback
-    #ifdef _DEBUG
     std::cout << "Running in debug mode" << std::endl;
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
-    #endif
+#endif
+
     // Enable face culling
     glEnable(GL_CULL_FACE);
     return 0;

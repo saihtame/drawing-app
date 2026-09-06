@@ -32,8 +32,8 @@ private: // Constants
 private: // Members
     SDL_Window* win = nullptr;
     SDL_GLContext gl_context = nullptr;
-    int window_width = 640;
-    int window_height = 480;
+    int window_width = 1280;
+    int window_height = 720;
     bool quit = false;
     std::unique_ptr<UI> ui = nullptr;
 };

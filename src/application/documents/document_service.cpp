@@ -2,14 +2,14 @@
 #include "application/documents/document_serializer.hpp"
 #include <algorithm>
 #include <iostream>
-#include <optional>
 #include <stdexcept>
 
 
 namespace Application::Documents {
 
-DocumentService::DocumentService(DocumentSerializer& serializer)
- : serializer(serializer) {
+DocumentService::DocumentService(DocumentSerializer& serializer,
+                                 DocumentCanvasFactory& canvas_factory)
+ : serializer(serializer), canvas_factory(canvas_factory) {
 }
 
 void DocumentService::add_document(std::shared_ptr<Domain::Documents::Document> document) {
@@ -18,94 +18,93 @@ void DocumentService::add_document(std::shared_ptr<Domain::Documents::Document> 
         throw std::invalid_argument("Document is null");
     }
 
-    loaded_documents.push_back(document);
-    set_active_document(document);
+    // Create session object
+    auto canvas = canvas_factory.create_canvas(document);
+    auto session = std::make_shared<DocumentSession>(document, canvas);
+    sessions.push_back(session);
+
+    // Set new document to be active
+    set_active_session(session);
 }
 
 void DocumentService::close_document() {
-    auto document = get_active_document();
+    auto session = get_active_session();
     // Check for null argument
-    if (document == nullptr) {
+    if (session == nullptr) {
         throw std::invalid_argument("Document is null");
     }
 
-    // Find match
-    auto it = std::find(loaded_documents.begin(), loaded_documents.end(), document);
-    if (it == loaded_documents.end()) {
+    // Erase from loaded documents
+    auto it = std::find(sessions.begin(), sessions.end(), session);
+    if (it == sessions.end()) {
         throw std::invalid_argument("Document is not loaded by the document service.");
     }
+    sessions.erase(it);
 
-    // Erase from loaded documents
-    loaded_documents.erase(it);
+    clear_active_session();
+}
 
-    // Erase save path, if it exists
-    auto save_it = save_paths.find(document);
-    if (save_it != save_paths.end()) {
-        save_paths.erase(save_it);
+void DocumentService::add_session(std::shared_ptr<DocumentSession> session) {
+    // Ensure not already loaded
+    auto it = std::find(sessions.begin(), sessions.end(), session);
+    if (it != sessions.end()) {
+        throw std::invalid_argument("Session already added");
     }
 
-    clear_active_document();
+    sessions.push_back(*it);
+    set_active_session(session);
 }
 
 void DocumentService::load_document(std::filesystem::path path) {
-    auto doc = serializer.load_document(path);
-    if (doc == nullptr) {
+    auto session = serializer.load_document(path);
+    if (session == nullptr) {
         std::cerr << "Failed to load document at " << path << std::endl;
         return;
     }
 
-    add_document(doc);
+    add_session(session);
 #ifdef _DEBUG
     std::cout << "Loaded document from " << path << std::endl;
 #endif
 }
 
 void DocumentService::save_document(std::filesystem::path path) {
-    if (active_document == nullptr)
+    if (active_session == nullptr)
         throw std::runtime_error("No active document to save");
 
-    serializer.save_document(path, active_document);
-    save_paths[active_document] = path;
+    serializer.save_document(path, active_session);
 
 #ifdef _DEBUG
     std::cout << "Saved document to " << path << std::endl;
 #endif
 }
 
-std::optional<std::filesystem::path> DocumentService::get_save_path(const std::shared_ptr<Domain::Documents::Document>& document) const {
-    auto it = save_paths.find(document);
-    if (it == save_paths.end()) {
-        return std::optional<std::filesystem::path>();
-    }
-    return it->second;
+std::shared_ptr<DocumentSession> DocumentService::get_active_session() const {
+    return active_session;
 }
 
-std::shared_ptr<Domain::Documents::Document> DocumentService::get_active_document() const {
-    return active_document;
-}
-
-void DocumentService::set_active_document(std::shared_ptr<Domain::Documents::Document> value) {
+void DocumentService::set_active_session(std::shared_ptr<DocumentSession> value) {
     // Check for null argument
     if (value == nullptr) {
         throw std::invalid_argument("Document is null");
     }
 
     // Ensure document has been added to loaded documents
-    auto it = std::find(loaded_documents.begin(), loaded_documents.end(), value);
-    if (it == loaded_documents.end()) {
+    auto it = std::find(sessions.begin(), sessions.end(), value);
+    if (it == sessions.end()) {
         throw std::invalid_argument("Cannot set active document, before adding it.");
     }
 
-    active_document = std::move(value);
+    active_session = std::move(value);
 }
 
-const std::list<std::shared_ptr<Domain::Documents::Document>>&
+const std::list<std::shared_ptr<DocumentSession>>&
     DocumentService::get_loaded_documents() const {
-    return loaded_documents;
+    return sessions;
 }
 
-void DocumentService::clear_active_document() {
-    active_document = nullptr;
+void DocumentService::clear_active_session() {
+    active_session = nullptr;
 }
 
 }
