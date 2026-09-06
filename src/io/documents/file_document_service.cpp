@@ -8,7 +8,7 @@ std::shared_ptr<Domain::Documents::Document> FileDocumentService::load_document(
     return std::shared_ptr<Domain::Documents::Document>();
 }
 
-void FileDocumentService::save_document(std::filesystem::path, std::shared_ptr<Domain::Documents::Document> document) {
+void FileDocumentService::save_document(std::filesystem::path, const std::shared_ptr<Domain::Documents::Document>& document) {
 }
 
 }
