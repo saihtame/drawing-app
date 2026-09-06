@@ -5,7 +5,7 @@
 int main() {
     /* Initialize */
     // Application
-    auto doc_service = std::make_shared<IO::Documents::FileDocumentService>();
+    IO::Documents::FileDocumentService doc_service;
     // Presentation
     Presentation::EditorRuntime runtime(doc_service);
 

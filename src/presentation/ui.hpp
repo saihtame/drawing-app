@@ -11,7 +11,7 @@ namespace Presentation {
 
 class UI {
 public:
-    UI(std::shared_ptr<Application::Documents::DocumentService> doc_service,
+    UI(Application::Documents::DocumentService& doc_service,
        SDL_Window* window, void* gl_context);
     ~UI();
 
@@ -20,7 +20,7 @@ public:
     void render();
 
 private: // Dependencies
-    std::shared_ptr<Application::Documents::DocumentService> doc_service = nullptr;
+    Application::Documents::DocumentService& doc_service;
 
 private: // Members
     bool first_render = true;

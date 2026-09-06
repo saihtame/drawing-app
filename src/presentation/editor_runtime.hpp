@@ -10,11 +10,11 @@ namespace Presentation {
 
 class EditorRuntime {
 public:
-    EditorRuntime(std::shared_ptr<Application::Documents::DocumentService> doc_service);
+    EditorRuntime(Application::Documents::DocumentService& doc_service);
     ~EditorRuntime();
 
 private: // Dependencies
-    std::shared_ptr<Application::Documents::DocumentService> doc_service;
+    Application::Documents::DocumentService& doc_service;
 
 public: // Public methods
     int run();

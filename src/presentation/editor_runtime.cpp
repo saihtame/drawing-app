@@ -24,7 +24,7 @@ void GLAPIENTRY MessageCallback(GLenum,
             type, severity, message );
 }
 
-EditorRuntime::EditorRuntime(std::shared_ptr<Application::Documents::DocumentService> doc_service) 
+EditorRuntime::EditorRuntime(Application::Documents::DocumentService& doc_service) 
     : doc_service(doc_service) {
 }
 

@@ -9,7 +9,7 @@
 
 namespace Presentation {
 
-UI::UI(std::shared_ptr<Application::Documents::DocumentService> doc_service,
+UI::UI(Application::Documents::DocumentService& doc_service,
        SDL_Window* window, void* gl_context) : doc_service(doc_service), window(window) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
