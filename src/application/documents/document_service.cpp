@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
+#include <unordered_set>
 
 
 namespace Application::Documents {
@@ -21,7 +22,7 @@ void DocumentService::add_document(std::shared_ptr<Domain::Documents::Document> 
     // Create session object
     auto canvas = canvas_factory.create_canvas(document);
     auto session = std::make_shared<DocumentSession>(document, canvas);
-    sessions.push_back(session);
+    sessions.insert(session);
 
     // Set new document to be active
     set_active_session(session);
@@ -51,7 +52,7 @@ void DocumentService::add_session(std::shared_ptr<DocumentSession> session) {
         throw std::invalid_argument("Session already added");
     }
 
-    sessions.push_back(*it);
+    sessions.insert(*it);
     set_active_session(session);
 }
 
@@ -100,7 +101,7 @@ void DocumentService::set_active_session(std::shared_ptr<DocumentSession> value)
     notify_observers();
 }
 
-const std::list<std::shared_ptr<DocumentSession>>&
+const std::unordered_set<std::shared_ptr<DocumentSession>>&
     DocumentService::get_loaded_documents() const {
     return sessions;
 }

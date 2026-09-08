@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <memory>
+#include <unordered_set>
 #include "application/documents/document_canvas_factory.hpp"
 #include "domain/documents/document.hpp"
 #include "document_serializer.hpp"
@@ -27,7 +28,7 @@ private: // Dependencies
 public:
     void add_document(std::shared_ptr<Domain::Documents::Document> document);
     void close_document();
-    const std::list<std::shared_ptr<DocumentSession>>& get_loaded_documents() const;
+    const std::unordered_set<std::shared_ptr<DocumentSession>>& get_loaded_documents() const;
 
 public: // Save and load
     void load_document(std::filesystem::path path);
@@ -48,7 +49,7 @@ private:
 
 private: // Members
     std::shared_ptr<DocumentSession> active_session = nullptr;
-    std::list<std::shared_ptr<DocumentSession>> sessions;
+    std::unordered_set<std::shared_ptr<DocumentSession>> sessions;
     std::vector<std::weak_ptr<DocumentServiceObserver>> observers;
 };
 
