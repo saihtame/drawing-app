@@ -15,7 +15,7 @@ CanvasPanel::CanvasPanel(std::weak_ptr<Application::Documents::DocumentCanvas> c
 }
 
 void CanvasPanel::render() {
-    ImGui::Begin("Canvas", &open, flags);
+    ImGui::Begin(panel_name.c_str(), &open, flags);
     ImGui::Text("I start docked on the center.");
     ImGui::End();
 }

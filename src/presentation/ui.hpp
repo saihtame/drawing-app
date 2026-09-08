@@ -40,6 +40,7 @@ private: // Dependencies
 private: // Members
     bool first_render = true;
     SDL_Window* window;
+    uint32_t canvas_dock_id = 0;
     // UI Components:
     Popups::PopupManager popup_manager;
     MenuBar menu_bar;

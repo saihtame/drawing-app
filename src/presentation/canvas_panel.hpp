@@ -24,7 +24,7 @@ private: // Constants
     // ImGui window flags
     int flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
         ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoCollapse | 
-        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMouseInputs;
+        ImGuiWindowFlags_NoMouseInputs;
 };
 
 }

@@ -3,7 +3,6 @@
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
-#include <condition_variable>
 #include <iostream>
 
 
@@ -67,16 +66,16 @@ void UI::render() {
 
     // Prepare dock space
     ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGuiID dockspaceId = ImGui::DockSpaceOverViewport(
+    uint32_t dockspace_id = ImGui::DockSpaceOverViewport(
         0,
         viewport,
-        ImGuiDockNodeFlags_NoWindowMenuButton
+        ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoUndocking
     );
 
     // Arrange ui components on first render
     if (first_render) {
         first_render = false;
-        reset_layout(dockspaceId, viewport);
+        reset_layout(dockspace_id, viewport);
     }
 
     // Render ui components
@@ -123,27 +122,30 @@ inline void UI::reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport) {
 
     // Split 30% of the dockspace into a node on each side.
     constexpr float side_ratio = 0.3f;
+    ImGuiID remaining = dockspace_id;
     ImGuiID left_dock_id = ImGui::DockBuilderSplitNode(
-        dockspace_id,
+        remaining,
         ImGuiDir_Left,
         side_ratio,
         nullptr,
-        &dockspace_id
+        &remaining
     );
     ImGuiID right_dock_id = ImGui::DockBuilderSplitNode(
-        dockspace_id,
+        remaining,
         ImGuiDir_Right,
         side_ratio / (1.0f - side_ratio),
         nullptr,
-        &dockspace_id
+        &remaining
     );
+    // 'remaining' is the central leaf node; canvas panels dock here.
+    canvas_dock_id = remaining;
 
     // The window name must exactly match the name passed to ImGui::Begin().
     ImGui::DockBuilderDockWindow("Tools", left_dock_id);
     ImGui::DockBuilderDockWindow("Layers", right_dock_id);
     // Canvas panels
     for (const auto& doc_panel_pair : canvas_panels) {
-        ImGui::DockBuilderDockWindow(doc_panel_pair.second->get_panel_name().c_str(), dockspace_id);
+        ImGui::DockBuilderDockWindow(doc_panel_pair.second->get_panel_name().c_str(), canvas_dock_id);
     }
 
     ImGui::DockBuilderFinish(dockspace_id);
@@ -155,6 +157,9 @@ void UI::add_panel(const std::shared_ptr<Application::Documents::DocumentSession
         return;
     }
     canvas_panels[doc_session] = std::make_unique<CanvasPanel>(doc_session->canvas);
+    std::string window_name = canvas_panels[doc_session]->get_panel_name();
+    ImGui::DockBuilderDockWindow(window_name.c_str(), canvas_dock_id);
+
     std::cout << "UI added panel for document." << std::endl;
 }
 
