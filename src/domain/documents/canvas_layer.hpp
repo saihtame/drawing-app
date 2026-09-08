@@ -1,4 +1,5 @@
 #pragma once
+#include <glm/vec2.hpp>
 #include <glm/ext/vector_uint2.hpp>
 #include <string>
 
@@ -11,7 +12,7 @@ public: // Ctors
     ~CanvasLayer() = default;
 
 public: // Interface
-    virtual void render(glm::uvec2 render_size) = 0;
+    virtual void render(glm::vec2 render_size) = 0;
 
 private: // Data
     std::string layer_name = "";

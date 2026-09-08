@@ -12,13 +12,13 @@ public: // Ctors
     ~GpuCanvasLayer() = default;
 
 public: // CanvasLayer implementation
-    void render(glm::uvec2 render_size) override;
+    void render(glm::vec2 render_size) override;
 
 private: // Helpers
-    inline void resize(glm::uvec2 new_size);
+    inline void resize(glm::vec2 new_size);
 
 private: // Data
-    glm::uvec2 render_size = {0, 0};
+    glm::vec2 render_size = {0, 0};
 };
 
 }

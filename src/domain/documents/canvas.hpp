@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/ext/vector_int2.hpp>
+#include <glm/ext/vector_float2.hpp>
 #include <list>
 #include <memory>
 #include "canvas_layer.hpp"
@@ -14,7 +14,7 @@ public: // Ctors
     ~Canvas() = default;
 
 public: // Rendering
-    void render(glm::ivec2 render_size);
+    void render(glm::vec2 render_size);
 
 public: // Layer management
     int get_layer_count() const noexcept;
