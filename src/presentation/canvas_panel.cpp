@@ -15,8 +15,13 @@ CanvasPanel::CanvasPanel(std::weak_ptr<Domain::Documents::Document> document)
 }
 
 bool CanvasPanel::render() {
+    if (document.expired())
+        return false;
+
     ImGui::Begin(panel_name.c_str(), &open, flags);
-    ImGui::Text("I start docked on the center.");
+    if (auto doc = document.lock()) {
+        doc->canvas->render({});
+    }
     ImGui::End();
 
     return !open;

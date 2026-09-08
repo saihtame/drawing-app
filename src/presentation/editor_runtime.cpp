@@ -30,6 +30,8 @@ EditorRuntime::EditorRuntime(Application::Documents::DocumentService& doc_servic
 }
 
 EditorRuntime::~EditorRuntime() {
+    ui = nullptr;
+
     if (gl_context != nullptr)
         SDL_GL_DestroyContext(gl_context);
     if (win != nullptr)

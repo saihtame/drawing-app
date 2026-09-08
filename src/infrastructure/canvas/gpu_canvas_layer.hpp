@@ -11,14 +11,14 @@ public: // Ctors
     GpuCanvasLayer(std::string layer_name, glm::uvec2 size);
     ~GpuCanvasLayer() = default;
 
-public:
-    void render() const override;
+public: // CanvasLayer implementation
+    void render(glm::uvec2 render_size) override;
 
-private:
-    inline void resize(glm::ivec2 new_size);
+private: // Helpers
+    inline void resize(glm::uvec2 new_size);
 
-private: // Members
-    glm::ivec2 render_size = {0, 0};
+private: // Data
+    glm::uvec2 render_size = {0, 0};
 };
 
 }

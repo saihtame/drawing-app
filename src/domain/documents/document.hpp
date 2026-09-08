@@ -18,7 +18,7 @@ public: // Ctors
 private: // Dependencies
     const CanvasLayerFactory& canvas_layer_factory;
 
-private: // Data
+public: // Data
     std::optional<std::filesystem::path> save_path;
     std::shared_ptr<Canvas> canvas;
     glm::uvec2 size;

@@ -10,7 +10,7 @@ Canvas::Canvas(const CanvasLayerFactory& layer_factory, glm::uvec2 size)
 void Canvas::render(glm::ivec2 render_size) {
     // Render each layer of the canvas
     for (const auto& layer : layers) {
-        layer->render();
+        layer->render(render_size);
     }
 }
 

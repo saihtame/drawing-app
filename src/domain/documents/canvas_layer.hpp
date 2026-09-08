@@ -11,7 +11,7 @@ public: // Ctors
     ~CanvasLayer() = default;
 
 public: // Interface
-    virtual void render() const = 0;
+    virtual void render(glm::uvec2 render_size) = 0;
 
 private: // Data
     std::string layer_name = "";

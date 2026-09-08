@@ -76,7 +76,10 @@ void DocumentService::deregister_observer(std::weak_ptr<DocumentServiceObserver>
 }
 
 inline void DocumentService::notify_observers() {
-    for (auto& observer : observers) {
+    // In the case that a notify results in a deregister,
+    // we need to avoid iterating a live vector. Hence the copy.
+    const auto observers_copy = observers;
+    for (auto& observer : observers_copy) {
         if (auto observer_locked = observer.lock())
             observer_locked->document_service_update();
     }
