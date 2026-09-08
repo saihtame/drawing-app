@@ -1,12 +1,10 @@
 #pragma once
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
-#include <unordered_map>
 #include "application/documents/document_service.hpp"
-#include "application/documents/document_session.hpp"
 #include "menu_bar.hpp"
 #include "popups/popup_manager.hpp"
-#include "presentation/canvas_panel.hpp"
+#include "canvas_panel.hpp"
 
 
 // ImGui forward declarations
@@ -28,7 +26,7 @@ private:
        SDL_Window* window, void* gl_context);
 
 public:
-    bool processEvent(SDL_Event* event);
+    bool process_event(SDL_Event* event);
     void render();
 
 public: // DocumentServiceObserver implementation
@@ -44,14 +42,14 @@ private: // Members
     // UI Components:
     Popups::PopupManager popup_manager;
     MenuBar menu_bar;
-    std::unordered_map<std::shared_ptr<Application::Documents::DocumentSession>, std::unique_ptr<CanvasPanel>> canvas_panels;
+    std::unordered_map<std::shared_ptr<Domain::Documents::Document>, std::unique_ptr<CanvasPanel>> canvas_panels;
 
 private: // Render methods
     inline void reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport);
 
 private: // Setup methods
-    inline void add_panel(const std::shared_ptr<Application::Documents::DocumentSession> doc_session);
-    inline void remove_panel(const std::shared_ptr<Application::Documents::DocumentSession> doc_session);
+    inline void add_panel(const std::shared_ptr<Domain::Documents::Document> document);
+    inline void remove_panel(const std::shared_ptr<Domain::Documents::Document> document);
     inline void setup_style();
 
 private: // Constants

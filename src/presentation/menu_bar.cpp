@@ -22,7 +22,7 @@ void MenuBar::render() {
             if (ImGui::MenuItem("Load file")) {
                 load_file();
             }
-            bool can_save = doc_service.has_active_session();
+            bool can_save = false;
             // Save File
             if (ImGui::MenuItem("Save file", "", false, can_save)) {
                 save_file();

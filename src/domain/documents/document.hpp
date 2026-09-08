@@ -1,26 +1,26 @@
 #pragma once
-#include <list>
+#include <filesystem>
 #include <memory>
 #include <glm/ext/vector_int3.hpp>
 #include <glm/vec2.hpp>
-#include "layer.hpp"
+#include <optional>
+#include "canvas.hpp"
+#include "canvas_layer_factory.hpp"
 
 
 namespace Domain::Documents {
 
 class Document final {
-public:
-    Document(glm::uvec2 size);
+public: // Ctors
+    Document(const CanvasLayerFactory& canvas_layer_factory, glm::uvec2 size);
     ~Document() = default;
 
-public:
-    int get_layer_count() const noexcept;
-    std::weak_ptr<Layer> get_layer(int ind) const;
-    void add_layer();
-    void remove_layer(int ind);
+private: // Dependencies
+    const CanvasLayerFactory& canvas_layer_factory;
 
-private:
-    std::list<std::shared_ptr<Layer>> layers;
+private: // Data
+    std::optional<std::filesystem::path> save_path;
+    std::shared_ptr<Canvas> canvas;
     glm::uvec2 size;
 };
 

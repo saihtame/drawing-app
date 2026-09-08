@@ -2,10 +2,9 @@
 #include <filesystem>
 #include <memory>
 #include <unordered_set>
-#include "application/documents/document_canvas_factory.hpp"
+#include "domain/documents/canvas_layer_factory.hpp"
 #include "domain/documents/document.hpp"
 #include "document_serializer.hpp"
-#include "document_session.hpp"
 
 
 namespace Application::Documents {
@@ -17,29 +16,22 @@ public:
 
 class DocumentService final {
 public:
-    DocumentService(DocumentSerializer& serializer,
-                    DocumentCanvasFactory& canvas_factory);
+    DocumentService(const DocumentSerializer& serializer,
+                    const Domain::Documents::CanvasLayerFactory& canvas_layer_factory);
     ~DocumentService() = default;
 
 private: // Dependencies
-    DocumentSerializer& serializer;
-    DocumentCanvasFactory& canvas_factory;
+    const DocumentSerializer& serializer;
+    const Domain::Documents::CanvasLayerFactory& canvas_layer_factory;
 
-public:
-    void add_document(std::shared_ptr<Domain::Documents::Document> document);
-    void close_document();
-    const std::unordered_set<std::shared_ptr<DocumentSession>>& get_loaded_documents() const;
+public: // Documents
+    void new_document(glm::uvec2 size);
+    const std::unordered_set<std::shared_ptr<Domain::Documents::Document>>& get_documents() const;
+    void close_document(const std::shared_ptr<Domain::Documents::Document>& document);
 
-public: // Save and load
+public: // Serialization
     void load_document(std::filesystem::path path);
-    void save_document(std::filesystem::path path);
-
-public: // Sessions
-    void add_session(std::shared_ptr<DocumentSession> session);
-    inline bool has_active_session() const { return active_session != nullptr; }
-    std::shared_ptr<DocumentSession> get_active_session() const;
-    void set_active_session(std::shared_ptr<DocumentSession> value);
-    void clear_active_session();
+    void save_document(std::filesystem::path path, std::weak_ptr<Domain::Documents::Document> document);
 
 public: // Observers
     void register_observer(std::weak_ptr<DocumentServiceObserver> observer);
@@ -48,8 +40,7 @@ private:
     inline void notify_observers();
 
 private: // Members
-    std::shared_ptr<DocumentSession> active_session = nullptr;
-    std::unordered_set<std::shared_ptr<DocumentSession>> sessions;
+    std::unordered_set<std::shared_ptr<Domain::Documents::Document>> documents;
     std::vector<std::weak_ptr<DocumentServiceObserver>> observers;
 };
 

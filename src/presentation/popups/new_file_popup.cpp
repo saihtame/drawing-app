@@ -1,5 +1,4 @@
 #include "new_file_popup.hpp"
-#include "domain/documents/document.hpp"
 #include "imgui.h"
 #include <algorithm>
 
@@ -23,8 +22,7 @@ bool NewFilePopup::render() {
     size.y = std::max(1, height);
 
     if (ImGui::Button("Create")) {
-        auto document = std::make_shared<Domain::Documents::Document>(size);
-        doc_service.add_document(document);
+        doc_service.new_document(size);
         ImGui::CloseCurrentPopup();
     }
 

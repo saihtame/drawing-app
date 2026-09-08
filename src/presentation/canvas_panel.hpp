@@ -1,22 +1,21 @@
 #pragma once
-#include "application/documents/document_canvas.hpp"
+#include "domain/documents/document.hpp"
 #include "imgui.h"
-#include <memory>
 
 
 namespace Presentation {
 
 class CanvasPanel final {
 public: // ctors
-    CanvasPanel(std::weak_ptr<Application::Documents::DocumentCanvas> canvas);
+    CanvasPanel(std::weak_ptr<Domain::Documents::Document> document);
     ~CanvasPanel() = default;
 
 public:
-    void render();
+    [[nodiscard]] bool render();
     const std::string& get_panel_name() const;
 
 private:
-    std::weak_ptr<Application::Documents::DocumentCanvas> canvas;
+    std::weak_ptr<Domain::Documents::Document> document;
     std::string panel_name = "";
     bool open = true;
 

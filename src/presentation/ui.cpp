@@ -46,7 +46,7 @@ UI::~UI() {
     doc_service.deregister_observer(weak_from_this());
 }
 
-bool UI::processEvent(SDL_Event* event) {
+bool UI::process_event(SDL_Event* event) {
     ImGui_ImplSDL3_ProcessEvent(event);
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     return (io.WantCaptureKeyboard || io.WantCaptureMouse);
@@ -69,7 +69,7 @@ void UI::render() {
     uint32_t dockspace_id = ImGui::DockSpaceOverViewport(
         0,
         viewport,
-        ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoUndocking
+        ImGuiDockNodeFlags_NoUndocking
     );
 
     // Arrange ui components on first render
@@ -89,7 +89,10 @@ void UI::render() {
 
     // Render canvas panels
     for (const auto& [doc, panel] : canvas_panels) {
-        panel->render();
+        bool should_remove = panel->render();
+        if (should_remove) {
+            remove_panel(doc);
+        }
     }
 
     // Render frame
@@ -99,7 +102,7 @@ void UI::render() {
 
 void UI::document_service_update() {
     // Get all loaded documents for doc service
-    auto loaded_docs = doc_service.get_loaded_documents();
+    auto loaded_docs = doc_service.get_documents();
 
     for (const auto& doc_session : loaded_docs) {
         // Check that we have a canvas window for each loaded document
@@ -111,7 +114,7 @@ void UI::document_service_update() {
     // Check if we have canvas for non loaded document
     for (const auto& doc_canvas_pair : canvas_panels) {
         if (!loaded_docs.contains(doc_canvas_pair.first)) {
-            remove_panel(doc_canvas_pair.first);
+            doc_service.close_document(doc_canvas_pair.first);
         }
     }
 }
@@ -151,19 +154,19 @@ inline void UI::reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport) {
     ImGui::DockBuilderFinish(dockspace_id);
 }
 
-void UI::add_panel(const std::shared_ptr<Application::Documents::DocumentSession> doc_session) {
-    if (canvas_panels.contains(doc_session)) {
+void UI::add_panel(const std::shared_ptr<Domain::Documents::Document> document) {
+    if (canvas_panels.contains(document)) {
         std::cerr << "UI cannot add panel for document. Already has one." << std::endl;
         return;
     }
-    canvas_panels[doc_session] = std::make_unique<CanvasPanel>(doc_session->canvas);
-    std::string window_name = canvas_panels[doc_session]->get_panel_name();
+    canvas_panels[document] = std::make_unique<CanvasPanel>(document);
+    std::string window_name = canvas_panels[document]->get_panel_name();
     ImGui::DockBuilderDockWindow(window_name.c_str(), canvas_dock_id);
 
     std::cout << "UI added panel for document." << std::endl;
 }
 
-void UI::remove_panel(const std::shared_ptr<Application::Documents::DocumentSession> doc_session) {
+void UI::remove_panel(const std::shared_ptr<Domain::Documents::Document> doc_session) {
     auto it = canvas_panels.find(doc_session);
     if (it == canvas_panels.end()) {
         std::cerr << "UI cannot remove panel for document. No panel to remove." << std::endl;

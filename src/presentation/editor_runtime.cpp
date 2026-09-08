@@ -111,7 +111,7 @@ inline void EditorRuntime::handle_input() {
             continue;
         }
         // Allow UI to capture events
-        if (ui->processEvent(&event))
+        if (ui->process_event(&event))
             continue;
     }
 }
