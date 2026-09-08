@@ -1,7 +1,9 @@
 #pragma once
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
+#include <unordered_map>
 #include "application/documents/document_service.hpp"
+#include "application/documents/document_session.hpp"
 #include "menu_bar.hpp"
 #include "popups/popup_manager.hpp"
 #include "presentation/canvas_panel.hpp"
@@ -29,7 +31,7 @@ public:
     bool processEvent(SDL_Event* event);
     void render();
 
-public:
+public: // DocumentServiceObserver implementation
     virtual void document_service_update();
 
 private: // Dependencies
@@ -41,12 +43,14 @@ private: // Members
     // UI Components:
     Popups::PopupManager popup_manager;
     MenuBar menu_bar;
-    std::vector<std::unique_ptr<CanvasPanel>> canvas_panels;
+    std::unordered_map<std::shared_ptr<Application::Documents::DocumentSession>, std::unique_ptr<CanvasPanel>> canvas_panels;
 
 private: // Render methods
     inline void reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport);
 
 private: // Setup methods
+    inline void add_panel(const std::shared_ptr<Application::Documents::DocumentSession> doc_session);
+    inline void remove_panel(const std::shared_ptr<Application::Documents::DocumentSession> doc_session);
     inline void setup_style();
 
 private: // Constants
