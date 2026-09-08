@@ -5,7 +5,7 @@
 
 namespace Domain::Documents {
 
-class Layer {
+class Layer final {
 public:
     Layer(glm::uvec2 size);
     ~Layer() = default;

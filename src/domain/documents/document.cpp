@@ -11,13 +11,13 @@ int Document::get_layer_count() const noexcept {
     return layers.size();
 }
 
-Layer* Document::get_layer(int ind) const {
+std::weak_ptr<Layer> Document::get_layer(int ind) const {
     // Check index
     if (ind >= layers.size() || ind < 0)
         throw std::invalid_argument("Layer index invalid: " + std::to_string(ind));
 
     auto it = std::next(layers.begin(), ind);
-    return it->get();
+    return *it;
 }
 
 void Document::add_layer() {

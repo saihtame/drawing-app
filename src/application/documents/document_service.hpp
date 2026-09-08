@@ -9,7 +9,12 @@
 
 namespace Application::Documents {
 
-class DocumentService {
+class DocumentServiceObserver {
+public:
+    virtual void document_service_update() = 0;
+};
+
+class DocumentService final {
 public:
     DocumentService(DocumentSerializer& serializer,
                     DocumentCanvasFactory& canvas_factory);
@@ -35,9 +40,16 @@ public: // Sessions
     void set_active_session(std::shared_ptr<DocumentSession> value);
     void clear_active_session();
 
+public: // Observers
+    void register_observer(std::weak_ptr<DocumentServiceObserver> observer);
+    void deregister_observer(std::weak_ptr<DocumentServiceObserver> observer);
+private:
+    inline void notify_observers();
+
 private: // Members
     std::shared_ptr<DocumentSession> active_session = nullptr;
     std::list<std::shared_ptr<DocumentSession>> sessions;
+    std::vector<std::weak_ptr<DocumentServiceObserver>> observers;
 };
 
 }

@@ -2,6 +2,7 @@ add_library(${PRESENTATION_TARGET} STATIC
     editor_runtime.cpp
     ui.cpp
     menu_bar.cpp
+    canvas_panel.cpp
     popups/popup_manager.cpp
     popups/new_file_popup.cpp
 )

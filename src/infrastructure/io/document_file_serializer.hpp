@@ -7,7 +7,7 @@
 
 namespace Infrastructure::IO {
 
-class DocumentFileSerializer : public Application::Documents::DocumentSerializer {
+class DocumentFileSerializer final : public Application::Documents::DocumentSerializer {
 public:
     DocumentFileSerializer() = default;
     ~DocumentFileSerializer() = default;

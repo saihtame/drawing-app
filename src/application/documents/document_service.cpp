@@ -66,6 +66,7 @@ void DocumentService::load_document(std::filesystem::path path) {
 #ifdef _DEBUG
     std::cout << "Loaded document from " << path << std::endl;
 #endif
+    notify_observers();
 }
 
 void DocumentService::save_document(std::filesystem::path path) {
@@ -96,6 +97,7 @@ void DocumentService::set_active_session(std::shared_ptr<DocumentSession> value)
     }
 
     active_session = std::move(value);
+    notify_observers();
 }
 
 const std::list<std::shared_ptr<DocumentSession>>&
@@ -105,6 +107,28 @@ const std::list<std::shared_ptr<DocumentSession>>&
 
 void DocumentService::clear_active_session() {
     active_session = nullptr;
+    notify_observers();
+}
+
+void DocumentService::register_observer(std::weak_ptr<DocumentServiceObserver> observer) {
+    // Check value
+    if (observer.expired()) {
+        throw std::invalid_argument("Observer expired");
+    }
+    observers.push_back(observer);
+}
+
+void DocumentService::deregister_observer(std::weak_ptr<DocumentServiceObserver> observer) {
+    std::erase_if(observers, [&](const std::weak_ptr<DocumentServiceObserver>& wp) {
+        return !wp.owner_before(observer) && !observer.owner_before(wp);
+    });
+}
+
+inline void DocumentService::notify_observers() {
+    for (auto& observer : observers) {
+        if (auto observer_locked = observer.lock())
+            observer_locked->document_service_update();
+    }
 }
 
 }

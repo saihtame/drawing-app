@@ -3,12 +3,20 @@
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
+#include <iostream>
 
 
 namespace Presentation {
 
-UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window,
-        void* gl_context) : window(window), menu_bar(doc_service, popup_manager) {
+std::shared_ptr<UI> UI::create(Application::Documents::DocumentService& doc_service,
+                               SDL_Window* window, void* gl_context) {
+    auto ui = std::shared_ptr<UI>(new UI(doc_service, window, gl_context));
+    doc_service.register_observer(ui);
+    return ui;
+}
+
+UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window, void* gl_context)
+ : window(window), menu_bar(doc_service, popup_manager), doc_service(doc_service) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -35,6 +43,7 @@ UI::~UI() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
+    doc_service.deregister_observer(weak_from_this());
 }
 
 bool UI::processEvent(SDL_Event* event) {
@@ -66,7 +75,7 @@ void UI::render() {
     // Arrange ui components on first render
     if (first_render) {
         first_render = false;
-        setup_first_render(dockspaceId, viewport);
+        reset_layout(dockspaceId, viewport);
     }
 
     // Render ui components
@@ -78,16 +87,15 @@ void UI::render() {
     ImGui::Text("I start docked on the right.");
     ImGui::End();
 
-    ImGui::Begin("Canvas");
-    ImGui::Text("I start docked on the center.");
-    ImGui::End();
-
     // Render frame
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-inline void UI::setup_first_render(uint32_t dockspace_id, ImGuiViewport* viewport) {
+void UI::document_service_update() {
+}
+
+inline void UI::reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport) {
     ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
     ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
 
@@ -100,8 +108,6 @@ inline void UI::setup_first_render(uint32_t dockspace_id, ImGuiViewport* viewpor
         nullptr,
         &dockspace_id
     );
-    // The right node ratio is relative to the remaining (1 - side_ratio) node,
-    // so it is rescaled to yield a side panel of side_ratio of the full dockspace.
     ImGuiID right_dock_id = ImGui::DockBuilderSplitNode(
         dockspace_id,
         ImGuiDir_Right,
@@ -113,7 +119,10 @@ inline void UI::setup_first_render(uint32_t dockspace_id, ImGuiViewport* viewpor
     // The window name must exactly match the name passed to ImGui::Begin().
     ImGui::DockBuilderDockWindow("Tools", left_dock_id);
     ImGui::DockBuilderDockWindow("Layers", right_dock_id);
-    ImGui::DockBuilderDockWindow("Canvas", dockspace_id);
+    // Canvas panels
+    for (const std::unique_ptr<CanvasPanel>& canvas_panel : canvas_panels) {
+        ImGui::DockBuilderDockWindow(canvas_panel->get_panel_name().c_str(), dockspace_id);
+    }
 
     ImGui::DockBuilderFinish(dockspace_id);
 }

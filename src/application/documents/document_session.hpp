@@ -7,7 +7,7 @@
 
 namespace Application::Documents {
 
-struct DocumentSession {
+struct DocumentSession final {
     DocumentSession(std::shared_ptr<Domain::Documents::Document> document,
                     std::shared_ptr<DocumentCanvas> canvas)
      : document(document), canvas(canvas) {}

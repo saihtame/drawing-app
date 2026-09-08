@@ -8,19 +8,19 @@
 
 namespace Domain::Documents {
 
-class Document {
+class Document final {
 public:
     Document(glm::uvec2 size);
     ~Document() = default;
 
 public:
     int get_layer_count() const noexcept;
-    Layer* get_layer(int ind) const;
+    std::weak_ptr<Layer> get_layer(int ind) const;
     void add_layer();
     void remove_layer(int ind);
 
 private:
-    std::list<std::unique_ptr<Layer>> layers;
+    std::list<std::shared_ptr<Layer>> layers;
     glm::uvec2 size;
 };
 

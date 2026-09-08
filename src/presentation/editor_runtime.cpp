@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
+#include "ui.hpp"
 
 
 namespace Presentation {
@@ -42,7 +43,7 @@ int EditorRuntime::run() {
         std::cerr << "Failed to initialize windows" << std::endl;
         return -1;
     }
-    ui = std::make_unique<UI>(doc_service, win, gl_context);
+    ui = UI::create(doc_service, win, gl_context);
 
     /* Loop */
     while (!quit) {
