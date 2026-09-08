@@ -1,4 +1,5 @@
 #include "ui.hpp"
+#include "domain/documents/document.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
@@ -88,11 +89,16 @@ void UI::render() {
     ImGui::End();
 
     // Render canvas panels
+    std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
     for (const auto& [doc, panel] : canvas_panels) {
         bool should_remove = panel->render();
         if (should_remove) {
-            remove_panel(doc);
+            docs_to_remove.push_back(doc);
         }
+    }
+    // Remove documents from DocumentService, if they have been closed
+    for (const auto& doc : docs_to_remove) {
+        doc_service.close_document(doc);
     }
 
     // Render frame
@@ -112,10 +118,14 @@ void UI::document_service_update() {
     }
 
     // Check if we have canvas for non loaded document
+    std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
     for (const auto& doc_canvas_pair : canvas_panels) {
         if (!loaded_docs.contains(doc_canvas_pair.first)) {
-            doc_service.close_document(doc_canvas_pair.first);
+            docs_to_remove.push_back(doc_canvas_pair.first);
         }
+    }
+    for (const auto& doc : docs_to_remove) {
+        remove_panel(doc);
     }
 }
 
