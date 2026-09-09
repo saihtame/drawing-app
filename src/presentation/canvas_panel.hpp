@@ -8,7 +8,7 @@ namespace Presentation {
 class CanvasPanel final {
 public: // ctors
     CanvasPanel(std::weak_ptr<Domain::Documents::Document> document);
-    ~CanvasPanel() = default;
+    ~CanvasPanel();
 
 public:
     [[nodiscard]] bool render();
@@ -17,6 +17,7 @@ public:
 private:
     std::weak_ptr<Domain::Documents::Document> document;
     std::string panel_name = "";
+    int panel_no;
     bool open = true;
 
 private: // Constants

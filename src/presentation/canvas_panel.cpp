@@ -1,6 +1,8 @@
 #include "canvas_panel.hpp"
 #include "imgui.h"
 #include <iostream>
+#include <limits>
+#include <unordered_set>
 
 
 namespace Presentation {
@@ -8,11 +10,33 @@ namespace Presentation {
 
 // Each panel just uses this no for its ImGui window name and increments the value.
 // This ensures no two panels have the same name.
-static int canvas_panels_instantiated = 0;
+std::unordered_set<int> names_taken;
+
+static int get_canvas_number() {
+    for (int i = 0; i < std::numeric_limits<int>::max(); i++)  {
+        if (!names_taken.contains(i)) {
+            names_taken.insert(i);
+            return i;
+        }
+    }
+    return -1;
+}
+static void return_canvas_number(int number) {
+    auto it = names_taken.find(number);
+
+    if (it != names_taken.end()) {
+        names_taken.erase(it);
+    }
+}
 
 CanvasPanel::CanvasPanel(std::weak_ptr<Domain::Documents::Document> document)
  : document(document) {
-    panel_name = std::to_string(canvas_panels_instantiated++);
+    panel_no = get_canvas_number();
+    panel_name = "Image " + std::to_string(panel_no);
+}
+
+CanvasPanel::~CanvasPanel() {
+    return_canvas_number(panel_no);
 }
 
 bool CanvasPanel::render() {
