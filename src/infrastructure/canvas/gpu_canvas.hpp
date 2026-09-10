@@ -3,6 +3,7 @@
 #include "gpu_canvas_layer.hpp"
 #include "infrastructure/rendering/material.hpp"
 #include "infrastructure/rendering/plane.hpp"
+#include "infrastructure/rendering/texture.hpp"
 #include <glm/ext/vector_uint2.hpp>
 #include <list>
 #include <memory>
@@ -24,6 +25,7 @@ public: // Canvas implementation
     void move_layer(int from, int to) override;
 
 private: // Data
+    Rendering::Texture texture;
     std::list<std::shared_ptr<GpuCanvasLayer>> layers;
     std::unique_ptr<Rendering::Material> material = std::make_unique<Rendering::Material>();
     std::unique_ptr<Rendering::Plane> plane = std::make_unique<Rendering::Plane>();

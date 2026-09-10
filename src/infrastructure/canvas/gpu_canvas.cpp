@@ -1,13 +1,14 @@
 #include "gpu_canvas.hpp"
 #include "gpu_canvas_layer.hpp"
 #include "glad/gl.h"
+#include "infrastructure/rendering/texture.hpp"
 #include <iostream>
 #include <stdexcept>
 
 
 namespace Infrastructure::Canvas {
 
-GpuCanvas::GpuCanvas(glm::uvec2 size) : Canvas(size) {
+GpuCanvas::GpuCanvas(glm::uvec2 size) : Canvas(size), texture(size) {
 }
 
 void GpuCanvas::render(glm::vec2 position) {
@@ -28,7 +29,7 @@ void GpuCanvas::render(glm::vec2 position) {
         return;
     }
 
-    material->use(position);
+    material->use(position, texture.get_id());
     plane->render();
 }
 

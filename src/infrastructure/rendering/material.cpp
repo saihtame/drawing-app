@@ -22,7 +22,7 @@ Material::Material() {
     }
 }
 
-void Material::use(glm::vec2 position) {
+void Material::use(glm::vec2 position, uint32_t texture_id) {
     if (shader_program == nullptr) {
         std::cerr << "Shader program null" << std::endl;
         return;
@@ -50,6 +50,8 @@ void Material::use(glm::vec2 position) {
     shader_program->use();
     shader_program->set_uniform_matrix("projection", projection);
     shader_program->set_uniform_matrix("transform", transform);
+    // Bind image data
+    glBindTexture(0, texture_id);
 }
 
 }

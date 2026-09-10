@@ -13,7 +13,7 @@ public:
     ~Material() = default;
 
 public:
-    void use(glm::vec2 position);
+    void use(glm::vec2 position, uint32_t texture_id);
 
 private:
     glm::quat orientation = glm::identity<glm::quat>();

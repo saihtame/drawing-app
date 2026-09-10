@@ -7,10 +7,11 @@ namespace Infrastructure::Rendering {
 
 
 const float vertex_data[] = {
-    -0.5f, 0.5f, 0.0f,
-    0.5f, 0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    -0.5f, -0.5f, 0.0f
+//    X      Y     Z     UV x   UV y
+    -0.5f,  0.5f, 0.0f, -1.0f,  1.0f, // Top Left
+     0.5f,  0.5f, 0.0f,  1.0f,  1.0f, // Top Right
+     0.5f, -0.5f, 0.0f,  1.0f, -1.0f, // Bottom Right
+    -0.5f, -0.5f, 0.0f, -1.0f, -1.0f, // Bottom Left
 };
 
 const uint32_t indices[] = {
@@ -38,8 +39,11 @@ Plane::Plane() {
 
     // Create and enable vertex attribues
     // Vertices
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    // UVs
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)3);
+    glEnableVertexAttribArray(1);
 }
 
 Plane::~Plane() {
