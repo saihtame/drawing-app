@@ -3,6 +3,7 @@ add_library(${PRESENTATION_TARGET} STATIC
     ui.cpp
     menu_bar.cpp
     canvas_panel.cpp
+    layers_panel.cpp
     popups/popup_manager.cpp
     popups/new_file_popup.cpp
 )

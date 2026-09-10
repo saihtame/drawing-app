@@ -21,7 +21,7 @@ public: // Layer management
     virtual void remove_layer(int ind) = 0;
 
 protected: // Data
-    glm::uvec2 size;
+    glm::uvec2 size = {0.0, 0.0};
 };
 
 }

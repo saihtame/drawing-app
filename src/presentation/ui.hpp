@@ -5,6 +5,7 @@
 #include "menu_bar.hpp"
 #include "popups/popup_manager.hpp"
 #include "canvas_panel.hpp"
+#include "presentation/layers_panel.hpp"
 #include <glm/vec4.hpp>
 
 
@@ -43,6 +44,7 @@ private: // Members
     // UI Components:
     Popups::PopupManager popup_manager;
     MenuBar menu_bar;
+    LayersPanel layers_panel;
     std::unordered_map<std::shared_ptr<Domain::Documents::Document>, std::unique_ptr<CanvasPanel>> canvas_panels;
 
 private: // Render methods

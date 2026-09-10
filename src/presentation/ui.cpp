@@ -18,7 +18,7 @@ std::shared_ptr<UI> UI::create(Application::Documents::DocumentService& doc_serv
 }
 
 UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window, void* gl_context)
- : window(window), menu_bar(doc_service, popup_manager), doc_service(doc_service) {
+ : window(window), menu_bar(doc_service, popup_manager), layers_panel(doc_service), doc_service(doc_service) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -110,10 +110,7 @@ void UI::render() {
     ImGui::Begin("Tools");
     ImGui::Text("I start docked on the left.");
     ImGui::End();
-
-    ImGui::Begin("Layers");
-    ImGui::Text("I start docked on the right.");
-    ImGui::End();
+    layers_panel.render();
 
     // Render canvas panels
     std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
