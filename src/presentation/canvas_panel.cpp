@@ -29,8 +29,8 @@ static void return_canvas_number(int number) {
     }
 }
 
-CanvasPanel::CanvasPanel(std::weak_ptr<Domain::Documents::Document> document)
- : document(document) {
+CanvasPanel::CanvasPanel(Application::Documents::DocumentService& doc_service, std::weak_ptr<Domain::Documents::Document> document)
+ : doc_service(doc_service), document(document) {
     panel_no = get_canvas_number();
     panel_name = "Image " + std::to_string(panel_no);
 }
@@ -43,15 +43,19 @@ bool CanvasPanel::render() {
     if (document.expired())
         return false;
 
-    bool visible = ImGui::Begin(panel_name.c_str(), &open, flags);
+    visible = ImGui::Begin(panel_name.c_str(), &open, flags);
     if (visible) {
-        if (auto doc = document.lock()) {
-            auto canvas = doc->get_canvas();
+        if (auto document_locked = document.lock()) {
+            auto imgui_pos = ImGui::GetCursorScreenPos();
             auto imgui_size = ImGui::GetContentRegionAvail();
-            canvas.render({imgui_size.x, imgui_size.y});
+            render_position = {
+                imgui_pos.x + imgui_size.x / 2.0f,
+                imgui_pos.y + imgui_size.y / 2.0f
+            };
+            doc_service.set_active_document(document_locked);
         } else {
-            std::cerr << "CanvasPanel has invalid document" << std::endl;
-            open = false;
+            std::cerr << "Invalid document" << std::endl;
+            return true;
         }
     }
     ImGui::End();

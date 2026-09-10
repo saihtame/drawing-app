@@ -8,11 +8,11 @@ namespace Infrastructure::IO {
 
 class DocumentFileSerializer final : public Application::Documents::DocumentSerializer {
 public:
-    DocumentFileSerializer(const Domain::Documents::CanvasLayerFactory& canvas_layer_factory);
+    DocumentFileSerializer(const Domain::Documents::CanvasFactory& canvas_layer_factory);
     ~DocumentFileSerializer() = default;
 
 private: // Dependencies
-    const Domain::Documents::CanvasLayerFactory& canvas_layer_factory;
+    const Domain::Documents::CanvasFactory& canvas_factory;
 
 public:
     std::shared_ptr<Domain::Documents::Document> load_document(std::filesystem::path path) const override;

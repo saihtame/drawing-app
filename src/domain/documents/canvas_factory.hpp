@@ -9,11 +9,10 @@ namespace Domain::Documents {
 // Forward declerations
 class Document;
 class Canvas;
-class CanvasLayer;
 
-class CanvasLayerFactory {
+class CanvasFactory {
 public:
-    virtual std::shared_ptr<CanvasLayer> create_canvas_layer(std::string layer_name, glm::uvec2 size) const = 0;
+    virtual std::shared_ptr<Canvas> create_canvas(glm::uvec2 size) const = 0;
 };
 
 }

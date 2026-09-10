@@ -5,25 +5,25 @@
 #include <glm/vec2.hpp>
 #include <optional>
 #include "canvas.hpp"
-#include "canvas_layer_factory.hpp"
+#include "canvas_factory.hpp"
 
 
 namespace Domain::Documents {
 
 class Document final {
 public: // Ctors
-    Document(const CanvasLayerFactory& canvas_layer_factory, glm::uvec2 size);
+    Document(const CanvasFactory& canvas_factory, glm::uvec2 size);
     ~Document() = default;
 
 private: // Dependencies
-    const CanvasLayerFactory& canvas_layer_factory;
+    const CanvasFactory& canvas_factory;
 
 public: // Getters
-    [[nodiscard]] Canvas& get_canvas() const noexcept;
+    [[nodiscard]] std::weak_ptr<Canvas> get_canvas() const noexcept;
 
 private: // Data
     std::optional<std::filesystem::path> save_path;
-    std::unique_ptr<Canvas> canvas;
+    std::shared_ptr<Canvas> canvas;
     glm::uvec2 size;
 };
 

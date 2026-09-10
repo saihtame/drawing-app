@@ -12,6 +12,7 @@ public:
     ~PopupManager() = default;
 
 public:
+    bool is_popup_open() const;
     void push_popup(std::shared_ptr<Popup> popup);
     void render();
 

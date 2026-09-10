@@ -8,11 +8,8 @@ namespace Domain::Documents {
 
 class CanvasLayer {
 public: // Ctors
-    CanvasLayer(std::string name, glm::uvec2 size);
+    CanvasLayer(std::string name, glm::uvec2 size) : layer_name(name), size(size) {}
     ~CanvasLayer() = default;
-
-public: // Interface
-    virtual void render(glm::vec2 render_size) = 0;
 
 private: // Data
     std::string layer_name = "";

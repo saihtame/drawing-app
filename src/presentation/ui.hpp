@@ -46,6 +46,8 @@ private: // Members
 
 private: // Render methods
     inline void reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport);
+    inline void render_imgui();
+    inline void render_canvas();
 
 private: // Setup methods
     inline void add_panel(const std::shared_ptr<Domain::Documents::Document> document);

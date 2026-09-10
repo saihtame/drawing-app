@@ -5,12 +5,12 @@
 
 namespace Infrastructure::IO {
 
-DocumentFileSerializer::DocumentFileSerializer(const Domain::Documents::CanvasLayerFactory& canvas_layer_factory)
- : canvas_layer_factory(canvas_layer_factory) {
+DocumentFileSerializer::DocumentFileSerializer(const Domain::Documents::CanvasFactory& canvas_factory)
+ : canvas_factory(canvas_factory) {
 }
 
 std::shared_ptr<Domain::Documents::Document> DocumentFileSerializer::load_document(std::filesystem::path path) const {
-    auto doc = std::make_shared<Domain::Documents::Document>(canvas_layer_factory, glm::uvec2());
+    auto doc = std::make_shared<Domain::Documents::Document>(canvas_factory, glm::uvec2());
     return doc;
 }
 

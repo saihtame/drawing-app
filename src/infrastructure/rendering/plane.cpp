@@ -1,5 +1,5 @@
 #include "plane.hpp"
-#include <memory>
+#include <glm/ext/vector_uint2.hpp>
 #include <glad/gl.h>
 
 
@@ -7,21 +7,18 @@ namespace Infrastructure::Rendering {
 
 
 const float vertex_data[] = {
-    -0.5f, 0.5f,
-    0.5f, 0.5f,
-    0.5f, -0.5f,
-    -0.5f, -0.5f
+    -0.5f, 0.5f, 0.0f,
+    0.5f, 0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    -0.5f, -0.5f, 0.0f
 };
 
-const int indices[] = {
+const uint32_t indices[] = {
     0, 1, 2,
-    2, 3, 1
+    2, 3, 0
 };
 
 Plane::Plane() {
-    // Prepare shader program
-    shader_program = std::make_unique<ShaderProgram>();
-
     // Create VAO
     glGenVertexArrays(1, &VAO);
     // Bind VAO
@@ -41,7 +38,7 @@ Plane::Plane() {
 
     // Create and enable vertex attribues
     // Vertices
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 }
 
@@ -52,7 +49,10 @@ Plane::~Plane() {
 }
 
 void Plane::render() {
-
+    // Bind VAO
+    glBindVertexArray(VAO);
+    // Render
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(uint32_t), GL_UNSIGNED_INT, 0);
 }
 
 }

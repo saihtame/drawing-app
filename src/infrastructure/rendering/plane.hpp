@@ -1,9 +1,10 @@
 #pragma once
-#include "shader_program.hpp"
-#include <memory>
+#include <glm/ext/vector_uint2.hpp>
 
 
 namespace Infrastructure::Rendering {
+
+class Material;
 
 class Plane final {
 public:
@@ -17,10 +18,6 @@ private: // Buffer object ids
     unsigned int VAO = 0;
     unsigned int VBO = 0;
     unsigned int EBO = 0;
-
-private: // Shader program
-    std::unique_ptr<ShaderProgram> shader_program;
-
 };
 
 };

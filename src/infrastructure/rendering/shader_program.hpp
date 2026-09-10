@@ -14,18 +14,20 @@ public:
 
     void use();
 
+public:
+    void add_shader(std::filesystem::path path, GLint shader_type);
+    void link();
+    void set_uniform_matrix(std::string uniform_name, glm::mat4 value);
+    void set_uniform_vec2(std::string uniform_name, glm::vec2 value);
+    void set_uniform_vec4(std::string uniform_name, glm::vec4 value);
+
 private: // Helpers
-    inline void add_shader(std::filesystem::path path, GLint shader_type);
-    inline void link();
+    inline unsigned int get_uniform_location(std::string uniform_name);
 
 private: // Data
     unsigned int program_id = 0;
     std::unordered_map<std::string, GLint> uniform_locations;
-    std::vector<Shader> shaders;
-
-private: // Constants
-    const std::filesystem::path vertex_shader_path = "shaders/visual/canvas.vert";
-    const std::filesystem::path fragment_shader_path = "shaders/visual/canvas.frag";
+    std::vector<std::unique_ptr<Shader>> shaders;
 };
 
 }

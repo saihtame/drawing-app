@@ -1,6 +1,5 @@
 #include "document_service.hpp"
-#include "application/documents/document_serializer.hpp"
-#include "domain/documents/document.hpp"
+#include "document_serializer.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <unordered_set>
@@ -9,12 +8,19 @@
 namespace Application::Documents {
 
 DocumentService::DocumentService(const DocumentSerializer& serializer,
-                                 const Domain::Documents::CanvasLayerFactory& canvas_layer_factory)
- : serializer(serializer), canvas_layer_factory(canvas_layer_factory) {
+                                 const Domain::Documents::CanvasFactory& canvas_factory)
+ : serializer(serializer), canvas_factory(canvas_factory) {
 }
 
 void DocumentService::new_document(glm::uvec2 size) {
-    auto document = std::make_shared<Domain::Documents::Document>(canvas_layer_factory, size);
+    auto document = std::make_shared<Domain::Documents::Document>(canvas_factory, size);
+    // Create first layer
+    auto canvas = document->get_canvas();
+    if (auto canvas_locked = canvas.lock()) {
+        canvas_locked->add_layer();
+    } else {
+        std::cerr << "Failed to initial canvas layer" << std::endl;
+    }
     documents.insert(document);
     notify_observers();
 #ifdef _DEBUG
@@ -37,6 +43,16 @@ void DocumentService::close_document(const std::shared_ptr<Domain::Documents::Do
 #ifdef _DEBUG
     std::cout << "Closed document" << std::endl;
 #endif
+}
+
+void DocumentService::set_active_document(std::shared_ptr<Domain::Documents::Document> document) {
+    if (active_document == document) return;
+    active_document = document;
+    notify_observers();
+}
+
+[[nodiscard]] std::weak_ptr<Domain::Documents::Document> DocumentService::get_active_document() const {
+    return active_document;
 }
 
 void DocumentService::load_document(std::filesystem::path path) {

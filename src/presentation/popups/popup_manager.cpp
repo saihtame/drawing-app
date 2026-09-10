@@ -6,6 +6,10 @@
 
 namespace Presentation::Popups {
 
+bool PopupManager::is_popup_open() const {
+    return !popup_stack.empty();
+}
+
 void PopupManager::push_popup(std::shared_ptr<Popup> popup) {
     if (popup == nullptr) {
         throw std::invalid_argument("Null popup");

@@ -1,6 +1,5 @@
 #pragma once
 #include "domain/documents/canvas_layer.hpp"
-#include <glm/ext/vector_int2.hpp>
 #include <glm/ext/vector_uint2.hpp>
 
 
@@ -12,13 +11,10 @@ public: // Ctors
     ~GpuCanvasLayer() = default;
 
 public: // CanvasLayer implementation
-    void render(glm::vec2 render_size) override;
-
-private: // Helpers
-    inline void resize(glm::vec2 new_size);
+    void render(uint32_t fbo);
 
 private: // Data
-    glm::vec2 render_size = {0, 0};
+    uint32_t texture;
 };
 
 }

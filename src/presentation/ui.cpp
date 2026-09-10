@@ -25,6 +25,7 @@ UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window,
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // Enable docking
+    io.IniFilename = nullptr;
 
     // Setup Dear ImGui style
     setup_style();
@@ -54,56 +55,10 @@ bool UI::process_event(SDL_Event* event) {
 }
 
 void UI::render() {
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
-
-    // Main Menu Bar
-    menu_bar.render();
-
-    // Render popups
-    popup_manager.render();
-
-    // Prepare dock space
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    uint32_t dockspace_id = ImGui::DockSpaceOverViewport(
-        0,
-        viewport,
-        ImGuiDockNodeFlags_NoUndocking
-    );
-
-    // Arrange ui components on first render
-    if (first_render) {
-        first_render = false;
-        reset_layout(dockspace_id, viewport);
+    render_imgui();
+    if (!popup_manager.is_popup_open()) {
+        render_canvas();
     }
-
-    // Render ui components
-    ImGui::Begin("Tools");
-    ImGui::Text("I start docked on the left.");
-    ImGui::End();
-
-    ImGui::Begin("Layers");
-    ImGui::Text("I start docked on the right.");
-    ImGui::End();
-
-    // Render canvas panels
-    std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
-    for (const auto& [doc, panel] : canvas_panels) {
-        bool should_remove = panel->render();
-        if (should_remove) {
-            docs_to_remove.push_back(doc);
-        }
-    }
-    // Remove documents from DocumentService, if they have been closed
-    for (const auto& doc : docs_to_remove) {
-        doc_service.close_document(doc);
-    }
-
-    // Render frame
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void UI::document_service_update() {
@@ -164,12 +119,79 @@ inline void UI::reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport) {
     ImGui::DockBuilderFinish(dockspace_id);
 }
 
+inline void UI::render_imgui() {
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+
+    // Main Menu Bar
+    menu_bar.render();
+
+    // Render popups
+    popup_manager.render();
+
+    // Prepare dock space
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    uint32_t dockspace_id = ImGui::DockSpaceOverViewport(
+        0,
+        viewport,
+        ImGuiDockNodeFlags_NoUndocking
+    );
+
+    // Arrange ui components on first render
+    if (first_render) {
+        first_render = false;
+        reset_layout(dockspace_id, viewport);
+    }
+
+    // Render ui components
+    ImGui::Begin("Tools");
+    ImGui::Text("I start docked on the left.");
+    ImGui::End();
+
+    ImGui::Begin("Layers");
+    ImGui::Text("I start docked on the right.");
+    ImGui::End();
+
+    // Render canvas panels
+    std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
+    for (const auto& [doc, panel] : canvas_panels) {
+        bool should_remove = panel->render();
+        if (should_remove) {
+            docs_to_remove.push_back(doc);
+        }
+    }
+    // Remove documents from DocumentService, if they have been closed
+    for (const auto& doc : docs_to_remove) {
+        doc_service.close_document(doc);
+    }
+
+    // Render frame
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+}
+
+inline void UI::render_canvas() {
+    for (const auto& [doc, panel]: canvas_panels) {
+        if (panel->is_visible()) {
+            auto canvas = doc->get_canvas();
+            if (auto canvas_locked = canvas.lock()) {
+                canvas_locked->render(panel->get_render_position());
+            } else {
+                std::cerr << "Document has invalid canvas" << std::endl;
+            }
+        }
+    }
+}
+
 void UI::add_panel(const std::shared_ptr<Domain::Documents::Document> document) {
     if (canvas_panels.contains(document)) {
         std::cerr << "UI cannot add panel for document. Already has one." << std::endl;
         return;
     }
-    canvas_panels[document] = std::make_unique<CanvasPanel>(document);
+    canvas_panels[document] = std::make_unique<CanvasPanel>(doc_service, document);
     std::string window_name = canvas_panels[document]->get_panel_name();
     ImGui::DockBuilderDockWindow(window_name.c_str(), canvas_dock_id);
 

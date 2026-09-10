@@ -1,33 +1,27 @@
 #pragma once
 #include <glm/ext/vector_float2.hpp>
-#include <list>
+#include <glm/ext/vector_uint2.hpp>
 #include <memory>
 #include "canvas_layer.hpp"
-#include "domain/documents/canvas_layer_factory.hpp"
 
 
 namespace Domain::Documents {
 
-class Canvas final {
+class Canvas {
 public: // Ctors
-    Canvas(const CanvasLayerFactory& layer_factory, glm::uvec2 size);
-    ~Canvas() = default;
+    Canvas(glm::uvec2 size) : size(size) {}
 
 public: // Rendering
-    void render(glm::vec2 render_size);
+    virtual void render(glm::vec2 position) = 0;
 
 public: // Layer management
-    int get_layer_count() const noexcept;
-    [[nodiscard]] std::weak_ptr<CanvasLayer> get_layer(int ind) const;
-    void add_layer();
-    void remove_layer(int ind);
+    virtual int get_layer_count() const noexcept = 0;
+    virtual std::weak_ptr<CanvasLayer> get_layer(int ind) const = 0;
+    virtual void add_layer() = 0;
+    virtual void remove_layer(int ind) = 0;
 
-private: // Dependencies
-    const CanvasLayerFactory& layer_factory;
-
-private: // Data
+protected: // Data
     glm::uvec2 size;
-    std::list<std::shared_ptr<CanvasLayer>> layers;
 };
 
 }
