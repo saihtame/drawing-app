@@ -17,7 +17,7 @@ public:
 
 private:
     glm::quat orientation = glm::identity<glm::quat>();
-    glm::vec3 scale {100.0, 100.0, 1.0};
+    glm::vec3 scale {200.0, 200.0, 1.0};
 
 private: // Constants
     const std::filesystem::path vertex_shader_path = "shaders/visual/canvas.vert";

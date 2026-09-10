@@ -43,16 +43,26 @@ bool CanvasPanel::render() {
     if (document.expired())
         return false;
 
-    visible = ImGui::Begin(panel_name.c_str(), &open, flags);
+    bool visible = ImGui::Begin(panel_name.c_str(), &open, flags);
     if (visible) {
         if (auto document_locked = document.lock()) {
+            // Ensure document is set as active document
+            doc_service.set_active_document(document_locked);
+
+            // Render document canvas
             auto imgui_pos = ImGui::GetCursorScreenPos();
             auto imgui_size = ImGui::GetContentRegionAvail();
-            render_position = {
+            glm::vec2 render_position = {
                 imgui_pos.x + imgui_size.x / 2.0f,
                 imgui_pos.y + imgui_size.y / 2.0f
             };
-            doc_service.set_active_document(document_locked);
+            auto canvas = document_locked->get_canvas();
+            if (auto canvas_locked = canvas.lock()) {
+                canvas_locked->render(render_position);
+            } else {
+                std::cerr << "Document has invalid canvas" << std::endl;
+                return true;
+            }
         } else {
             std::cerr << "Invalid document" << std::endl;
             return true;

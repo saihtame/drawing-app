@@ -5,6 +5,7 @@
 #include "menu_bar.hpp"
 #include "popups/popup_manager.hpp"
 #include "canvas_panel.hpp"
+#include <glm/vec4.hpp>
 
 
 // ImGui forward declarations
@@ -46,8 +47,6 @@ private: // Members
 
 private: // Render methods
     inline void reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport);
-    inline void render_imgui();
-    inline void render_canvas();
 
 private: // Setup methods
     inline void add_panel(const std::shared_ptr<Domain::Documents::Document> document);
@@ -56,6 +55,7 @@ private: // Setup methods
 
 private: // Constants
     static constexpr const char* glsl_version = "#version 460";
+    const glm::vec4 background_color {0.12f, 0.12f, 0.18f, 1.00f};
 };
 
 }

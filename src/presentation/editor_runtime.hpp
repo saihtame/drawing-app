@@ -28,7 +28,6 @@ private: // Helper methods
 
 private: // Constants
     const int window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-    const glm::vec4 background_color {1.0f, 1.0f, 1.0f, 1.0f};
 
 private: // Members
     SDL_Window* win = nullptr;

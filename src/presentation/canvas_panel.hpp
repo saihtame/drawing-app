@@ -17,16 +17,12 @@ private: // Dependencies
 public:
     [[nodiscard]] bool render();
     const std::string& get_panel_name() const;
-    bool is_visible() const { return visible; }
-    glm::vec2 get_render_position() const { return render_position; }
 
 private:
     std::weak_ptr<Domain::Documents::Document> document;
     std::string panel_name = "";
     int panel_no;
     bool open = true;
-    bool visible = false;
-    glm::vec2 render_position {0.0f, 0.0f};
 
 private: // Constants
     // ImGui window flags

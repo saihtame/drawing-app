@@ -119,10 +119,6 @@ inline void EditorRuntime::handle_input() {
 }
 
 inline void EditorRuntime::render() {
-    // Clear screen
-    glClearColor(background_color.r, background_color.g, background_color.b, background_color.a);
-    glClear(GL_COLOR_BUFFER_BIT);
-
     // Render UI
     ui->render();
 
