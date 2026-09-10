@@ -42,9 +42,9 @@ void Material::use(glm::vec2 position) {
 
     // Calculate transform
     glm::vec3 world_pos = {position.x, position.y, 0.0f};
-    transform = glm::translate(glm::mat4(1.0f), world_pos) // Position
-                * glm::mat4_cast(orientation);             // Rotation
-    transform = glm::scale(transform, scale);              // Scale
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), world_pos) // Position
+                        * glm::mat4_cast(orientation);               // Rotation
+    transform =           glm::scale(transform, scale);              // Scale
 
     // Setup shader program
     shader_program->use();

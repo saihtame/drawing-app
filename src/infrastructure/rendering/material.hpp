@@ -1,5 +1,6 @@
 #pragma once
 #include <filesystem>
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/quaternion_float.hpp>
 #include <glm/ext/vector_float2.hpp>
 
@@ -15,9 +16,8 @@ public:
     void use(glm::vec2 position);
 
 private:
-    glm::quat orientation;
+    glm::quat orientation = glm::identity<glm::quat>();
     glm::vec3 scale {100.0, 100.0, 1.0};
-    glm::mat4 transform;
 
 private: // Constants
     const std::filesystem::path vertex_shader_path = "shaders/visual/canvas.vert";

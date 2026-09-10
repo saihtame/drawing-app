@@ -170,7 +170,6 @@ inline void UI::render_imgui() {
     // Render frame
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 }
 
 inline void UI::render_canvas() {

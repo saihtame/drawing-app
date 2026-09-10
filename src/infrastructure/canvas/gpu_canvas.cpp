@@ -10,9 +10,13 @@ GpuCanvas::GpuCanvas(glm::uvec2 size) : Canvas(size) {
 }
 
 void GpuCanvas::render(glm::vec2 position) {
-    // Disable depth buffer
+    // Disable depth buffer, culling and blending for the 2D canvas pass
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
+    // Disable face culling
+    glDisable(GL_CULL_FACE);
+    // Disable alpha blending
+    glDisable(GL_BLEND);
 
     if (material == nullptr) {
         std::cerr << "Material null" << std::endl;
