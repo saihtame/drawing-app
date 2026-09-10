@@ -14,6 +14,9 @@ private: // Dependencies
 
 public:
     void render();
+
+public: // Constants
+    static constexpr const char* LAYER_DRAG_PAYLOAD = "LayerRow";
 };
 
 }

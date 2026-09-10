@@ -19,6 +19,7 @@ public: // Layer management
     virtual std::weak_ptr<CanvasLayer> get_layer(int ind) const = 0;
     virtual void add_layer() = 0;
     virtual void remove_layer(int ind) = 0;
+    virtual void move_layer(int from, int to) = 0;
 
 protected: // Data
     glm::uvec2 size = {0.0, 0.0};

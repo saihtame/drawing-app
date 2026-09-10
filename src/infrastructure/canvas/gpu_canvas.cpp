@@ -2,6 +2,7 @@
 #include "gpu_canvas_layer.hpp"
 #include "glad/gl.h"
 #include <iostream>
+#include <stdexcept>
 
 
 namespace Infrastructure::Canvas {
@@ -60,6 +61,26 @@ void GpuCanvas::remove_layer(int ind) {
 
     auto it = std::next(layers.begin(), ind);
     layers.erase(it);
+}
+
+void GpuCanvas::move_layer(int from, int to) {
+    int layer_count = layers.size();
+    if (from >= layer_count || from < 0) {
+        throw std::invalid_argument("From index out of bounds");
+    }
+    if (to >= layer_count || to < 0) {
+        throw std::invalid_argument("To index out of bounds");
+    }
+    if (from == to) return;
+
+    auto from_it = std::next(layers.begin(), from);
+    auto to_it = std::next(layers.begin(), to);
+
+    if (from < to) {
+        ++to_it;
+    }
+
+    layers.splice(to_it, layers, from_it);
 }
 
 }

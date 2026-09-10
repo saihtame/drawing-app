@@ -26,24 +26,53 @@ void LayersPanel::render() {
             for (int i = 0; i < layer_count; i++) {
                 auto layer = canvas->get_layer(i);
                 if (auto layer_locked = layer.lock()) {
+                    ImGui::PushID(i);
+
                     // Hide/show button
                     if (layer_locked->is_visible()) {
-                        if (ImGui::Button(std::string("Hide##layer_btn_" + std::to_string(i)).c_str())) {
+                        if (ImGui::Button("Hide")) {
                             layer_locked->toggle_visiblity();
                         }
                     } else {
-                        if (ImGui::Button(std::string("Show##layer_btn_" + std::to_string(i)).c_str())) {
+                        if (ImGui::Button("Show")) {
                             layer_locked->toggle_visiblity();
                         }
                     }
-                    // Name label
                     ImGui::SameLine();
-                    ImGui::Text("%s", layer_locked->get_name().c_str());
+
+                    // Name selectable spanning the rest of the row (minus the delete button)
+                    const float spacing = ImGui::GetStyle().ItemSpacing.x;
+                    const float delete_btn_width = ImGui::GetFrameHeight();
+                    const float name_width = ImGui::GetContentRegionAvail().x - delete_btn_width - spacing;
+                    ImGui::Selectable(layer_locked->get_name().c_str(), false,
+                        ImGuiSelectableFlags_None, ImVec2(name_width, 0.0f));
+
+                    // Drag source: allows dragging this layer row
+                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+                        ImGui::SetDragDropPayload(LAYER_DRAG_PAYLOAD, &i, sizeof(i));
+                        ImGui::SetTooltip("Dragging %s", layer_locked->get_name().c_str());
+                        ImGui::EndDragDropSource();
+                    }
+
+                    // Drop target: move the dragged layer onto this row when dropped here
+                    if (ImGui::BeginDragDropTarget()) {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(LAYER_DRAG_PAYLOAD)) {
+                            int from = *static_cast<const int*>(payload->Data);
+                            if (from != i) {
+                                canvas->move_layer(from, i);
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+
                     ImGui::SameLine();
+
                     // Delete button
-                    if (ImGui::Button(std::string("X##layer_btn_" + std::to_string(i)).c_str())) {
+                    if (ImGui::Button("X", ImVec2(delete_btn_width, 0.0f))) {
                         layer_to_remove = i;
                     }
+
+                    ImGui::PopID();
                 }
             }
             if (layer_to_remove != -1)

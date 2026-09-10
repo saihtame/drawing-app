@@ -21,6 +21,7 @@ public: // Canvas implementation
     [[nodiscard]] std::weak_ptr<Domain::Documents::CanvasLayer> get_layer(int ind) const override;
     void add_layer() override;
     void remove_layer(int ind) override;
+    void move_layer(int from, int to) override;
 
 private: // Data
     std::list<std::shared_ptr<GpuCanvasLayer>> layers;
