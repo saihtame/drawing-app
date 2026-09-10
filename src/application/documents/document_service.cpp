@@ -17,7 +17,11 @@ void DocumentService::new_document(glm::uvec2 size) {
     // Create first layer
     auto canvas = document->get_canvas();
     if (auto canvas_locked = canvas.lock()) {
-        canvas_locked->add_layer();
+        auto layer = canvas_locked->add_layer();
+        // Fill layer with white
+        if (auto layer_locked = layer.lock()) {
+            layer_locked->fill({1.0, 1.0, 1.0, 1.0});
+        }
     } else {
         std::cerr << "Failed to initial canvas layer" << std::endl;
     }

@@ -11,6 +11,9 @@ public: // Ctors
     GpuCanvasLayer(std::string layer_name, glm::uvec2 size);
     ~GpuCanvasLayer();
 
+public: // CanvasLayer implementation
+    void fill(glm::vec4 color) override;
+
 public: // Accessors
     Rendering::Texture& get_texture() { return texture; }
 

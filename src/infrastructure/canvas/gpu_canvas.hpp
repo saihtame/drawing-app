@@ -4,6 +4,7 @@
 #include "infrastructure/rendering/material.hpp"
 #include "infrastructure/rendering/plane.hpp"
 #include "infrastructure/rendering/texture.hpp"
+#include "infrastructure/compute/texture_compositor.hpp"
 #include <glm/ext/vector_uint2.hpp>
 #include <list>
 #include <memory>
@@ -20,7 +21,7 @@ public: // Canvas implementation
     void render(glm::vec2 position) override;
     [[nodiscard]] int get_layer_count() const noexcept override;
     [[nodiscard]] std::weak_ptr<Domain::Documents::CanvasLayer> get_layer(int ind) const override;
-    void add_layer() override;
+    std::weak_ptr<Domain::Documents::CanvasLayer> add_layer() override;
     void remove_layer(int ind) override;
     void move_layer(int from, int to) override;
 
@@ -29,6 +30,7 @@ private: // Data
     std::list<std::shared_ptr<GpuCanvasLayer>> layers;
     std::unique_ptr<Rendering::Material> material = std::make_unique<Rendering::Material>();
     std::unique_ptr<Rendering::Plane> plane = std::make_unique<Rendering::Plane>();
+    Compute::TextureCompositor compositor;
 };
 
 }

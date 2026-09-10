@@ -51,7 +51,7 @@ void Material::use(glm::vec2 position, uint32_t texture_id) {
     shader_program->set_uniform_matrix("projection", projection);
     shader_program->set_uniform_matrix("transform", transform);
     // Bind image data
-    glBindTexture(0, texture_id);
+    glBindTextureUnit(0, texture_id);
 }
 
 }

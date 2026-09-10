@@ -1,5 +1,6 @@
 #include "gpu_canvas_layer.hpp"
 #include "domain/documents/canvas_layer.hpp"
+#include <iostream>
 
 
 namespace Infrastructure::Canvas {
@@ -9,6 +10,11 @@ GpuCanvasLayer::GpuCanvasLayer(std::string layer_name, glm::uvec2 size)
 }
 
 GpuCanvasLayer::~GpuCanvasLayer() {
+}
+
+void GpuCanvasLayer::fill(glm::vec4 color) {
+    std::cout << "Filling" << std::endl;
+    texture.fill(color);
 }
 
 }

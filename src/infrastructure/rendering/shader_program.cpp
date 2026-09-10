@@ -52,6 +52,11 @@ void ShaderProgram::set_uniform_vec4(std::string uniform_name, glm::vec4 value) 
     glUniform4f(loc, value.x, value.y, value.z, value.w);
 }
 
+void ShaderProgram::set_uniform_int(std::string uniform_name, int32_t value) {
+    unsigned int loc = get_uniform_location(uniform_name);
+    glUniform1i(loc, value);
+}
+
 inline unsigned int ShaderProgram::get_uniform_location(std::string uniform_name) {
     auto it = uniform_locations.find(uniform_name);
     if (it != uniform_locations.end())

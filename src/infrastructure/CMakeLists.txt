@@ -8,6 +8,7 @@ add_library(${INFRASTRUCTURE_TARGET} STATIC
     rendering/plane.cpp
     rendering/material.cpp
     rendering/texture.cpp
+    compute/texture_compositor.cpp
 )
 
 target_include_directories(${INFRASTRUCTURE_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)

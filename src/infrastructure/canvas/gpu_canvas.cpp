@@ -1,4 +1,5 @@
 #include "gpu_canvas.hpp"
+#include "domain/documents/canvas_layer.hpp"
 #include "gpu_canvas_layer.hpp"
 #include "glad/gl.h"
 #include "infrastructure/rendering/texture.hpp"
@@ -29,6 +30,13 @@ void GpuCanvas::render(glm::vec2 position) {
         return;
     }
 
+    std::vector<uint32_t> layer_tex_ids;
+    layer_tex_ids.reserve(layers.size());
+    for (const auto& layer : layers) {
+        layer_tex_ids.push_back(layer->get_texture().get_id());
+    }
+    compositor.composit(size, texture, layer_tex_ids);
+
     material->use(position, texture.get_id());
     plane->render();
 }
@@ -46,13 +54,15 @@ std::weak_ptr<Domain::Documents::CanvasLayer> GpuCanvas::get_layer(int ind) cons
     return *it;
 }
 
-void GpuCanvas::add_layer() {
+std::weak_ptr<Domain::Documents::CanvasLayer> GpuCanvas::add_layer() {
     // Create layer
     std::string layer_name = "Layer " + std::to_string(layers.size() + 1);
     auto layer = std::make_shared<GpuCanvasLayer>(layer_name, size);
 
     // Add to list
-    layers.push_back(std::move(layer));
+    layers.push_back(layer);
+
+    return layer;
 }
 
 void GpuCanvas::remove_layer(int ind) {
