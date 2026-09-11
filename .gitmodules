@@ -13,3 +13,6 @@
 	url = git@github.com:g-truc/glm.git
 	branch = 1.0
 	shallow = true
+[submodule "external/uuid_v4"]
+	path = external/uuid_v4
+	url = git@github.com:crashoz/uuid_v4.git
