@@ -8,7 +8,7 @@ namespace Presentation::CanvasPanels {
 
 class CanvasPanel final {
 public: // ctors
-    CanvasPanel(Application::Documents::DocumentService& doc_service, std::weak_ptr<Domain::Documents::Document> document);
+    CanvasPanel(Application::Documents::DocumentService& doc_service, const std::shared_ptr<Domain::Documents::Document>& document);
     ~CanvasPanel();
 
 private: // Dependencies

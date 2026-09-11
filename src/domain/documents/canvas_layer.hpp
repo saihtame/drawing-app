@@ -1,4 +1,5 @@
 #pragma once
+#include "uuid_v4.h"
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <glm/ext/vector_uint2.hpp>
@@ -9,7 +10,7 @@ namespace Domain::Documents {
 
 class CanvasLayer {
 public: // Ctors
-    CanvasLayer(std::string name, glm::uvec2 size) : layer_name(name), size(size) {}
+    CanvasLayer(std::string name, glm::uvec2 size);
     ~CanvasLayer() = default;
 
 public:
@@ -21,6 +22,7 @@ public: // Accessors
     [[nodiscard]] bool is_visible() const noexcept { return visible; }
 
 protected: // Data
+    UUIDv4::UUID uuid;
     std::string layer_name = "";
     glm::uvec2 size = {0, 0};
     glm::uvec2 offset = {0, 0};

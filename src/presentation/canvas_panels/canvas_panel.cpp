@@ -29,12 +29,11 @@ static void return_canvas_number(int number) {
     }
 }
 
-CanvasPanel::CanvasPanel(Application::Documents::DocumentService& doc_service, std::weak_ptr<Domain::Documents::Document> document)
+CanvasPanel::CanvasPanel(Application::Documents::DocumentService& doc_service, const std::shared_ptr<Domain::Documents::Document>& document)
  : doc_service(doc_service), document(document) {
     panel_no = get_canvas_number();
-    // TODO: Add #[DOC.UUID] to panel name.
-    // So that ImGui doesn't think a future CanvasPanel of the same name is the same panel.
-    panel_name = "Image " + std::to_string(panel_no);
+    std::string uuid_str = document->get_uuid().bytes();
+    panel_name = "Image " + std::to_string(panel_no) + "###" + uuid_str;
 }
 
 CanvasPanel::~CanvasPanel() {

@@ -6,6 +6,7 @@
 #include <optional>
 #include "canvas.hpp"
 #include "canvas_factory.hpp"
+#include "uuid_v4.h"
 
 
 namespace Domain::Documents {
@@ -20,8 +21,10 @@ private: // Dependencies
 
 public: // Getters
     [[nodiscard]] std::weak_ptr<Canvas> get_canvas() const noexcept;
+    [[nodiscard]] UUIDv4::UUID get_uuid() const noexcept { return uuid; }
 
 private: // Data
+    UUIDv4::UUID uuid;
     std::optional<std::filesystem::path> save_path;
     std::shared_ptr<Canvas> canvas;
     glm::uvec2 size;
