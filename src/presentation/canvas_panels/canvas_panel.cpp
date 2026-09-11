@@ -6,7 +6,7 @@
 #include <unordered_set>
 
 
-namespace Presentation {
+namespace Presentation::CanvasPanels {
 
 
 // Each panel just uses this no for its ImGui window name and increments the value.

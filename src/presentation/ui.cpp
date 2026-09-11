@@ -193,7 +193,7 @@ void UI::add_panel(const std::shared_ptr<Domain::Documents::Document> document) 
         std::cerr << "UI cannot add panel for document. Already has one." << std::endl;
         return;
     }
-    canvas_panels[document] = std::make_unique<CanvasPanel>(doc_service, document);
+    canvas_panels[document] = std::make_unique<CanvasPanels::CanvasPanel>(doc_service, document);
     std::string window_name = canvas_panels[document]->get_panel_name();
     ImGui::DockBuilderDockWindow(window_name.c_str(), canvas_dock_id);
 

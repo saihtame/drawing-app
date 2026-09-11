@@ -4,7 +4,7 @@
 #include "imgui.h"
 
 
-namespace Presentation {
+namespace Presentation::CanvasPanels {
 
 class CanvasPanel final {
 public: // ctors
