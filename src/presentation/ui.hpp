@@ -4,7 +4,7 @@
 #include "application/documents/document_service.hpp"
 #include "menu_bar.hpp"
 #include "popups/popup_manager.hpp"
-#include "canvas_panels/canvas_panel.hpp"
+#include "canvas_panels/canvas_panel_service.hpp"
 #include "presentation/layers_panel.hpp"
 #include <glm/vec4.hpp>
 
@@ -43,16 +43,14 @@ private: // Members
     uint32_t canvas_dock_id = 0;
     // UI Components:
     Popups::PopupManager popup_manager;
+    CanvasPanels::CanvasPanelService canvas_panel_service;
     MenuBar menu_bar;
     LayersPanel layers_panel;
-    std::unordered_map<std::shared_ptr<Domain::Documents::Document>, std::unique_ptr<CanvasPanels::CanvasPanel>> canvas_panels;
 
 private: // Render methods
     inline void reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport);
 
 private: // Setup methods
-    inline void add_panel(const std::shared_ptr<Domain::Documents::Document> document);
-    inline void remove_panel(const std::shared_ptr<Domain::Documents::Document> document);
     inline void setup_style();
 
 private: // Constants

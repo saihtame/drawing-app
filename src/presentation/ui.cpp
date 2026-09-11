@@ -4,7 +4,6 @@
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
-#include <iostream>
 #include <glad/gl.h>
 
 
@@ -18,7 +17,7 @@ std::shared_ptr<UI> UI::create(Application::Documents::DocumentService& doc_serv
 }
 
 UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window, void* gl_context)
- : window(window), menu_bar(doc_service, popup_manager), layers_panel(doc_service), doc_service(doc_service) {
+ : window(window), canvas_panel_service(doc_service), menu_bar(doc_service, popup_manager), layers_panel(doc_service), doc_service(doc_service) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -114,7 +113,7 @@ void UI::render() {
 
     // Render canvas panels
     std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
-    for (const auto& [doc, panel] : canvas_panels) {
+    for (const auto& [doc, panel] : canvas_panel_service.get_panels()) {
         bool should_remove = panel->render();
         if (should_remove) {
             docs_to_remove.push_back(doc);
@@ -136,20 +135,24 @@ void UI::document_service_update() {
 
     for (const auto& doc_session : loaded_docs) {
         // Check that we have a canvas window for each loaded document
-        if (!canvas_panels.contains(doc_session)) {
-            add_panel(doc_session);
+        if (!canvas_panel_service.contains(doc_session)) {
+            canvas_panel_service.add_panel(doc_session);
+            // Dock the new panel into the central canvas area
+            if (auto panel = canvas_panel_service.get_canvas_panel(doc_session).lock()) {
+                ImGui::DockBuilderDockWindow(panel->get_panel_name().c_str(), canvas_dock_id);
+            }
         }
     }
 
     // Check if we have canvas for non loaded document
     std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
-    for (const auto& doc_canvas_pair : canvas_panels) {
-        if (!loaded_docs.contains(doc_canvas_pair.first)) {
-            docs_to_remove.push_back(doc_canvas_pair.first);
+    for (const auto& doc_panel_pair : canvas_panel_service.get_panels()) {
+        if (!loaded_docs.contains(doc_panel_pair.first)) {
+            docs_to_remove.push_back(doc_panel_pair.first);
         }
     }
     for (const auto& doc : docs_to_remove) {
-        remove_panel(doc);
+        canvas_panel_service.remove_panel(doc);
     }
 }
 
@@ -181,33 +184,11 @@ inline void UI::reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport) {
     ImGui::DockBuilderDockWindow("Tools", left_dock_id);
     ImGui::DockBuilderDockWindow("Layers", right_dock_id);
     // Canvas panels
-    for (const auto& doc_panel_pair : canvas_panels) {
+    for (const auto& doc_panel_pair : canvas_panel_service.get_panels()) {
         ImGui::DockBuilderDockWindow(doc_panel_pair.second->get_panel_name().c_str(), canvas_dock_id);
     }
 
     ImGui::DockBuilderFinish(dockspace_id);
-}
-
-void UI::add_panel(const std::shared_ptr<Domain::Documents::Document> document) {
-    if (canvas_panels.contains(document)) {
-        std::cerr << "UI cannot add panel for document. Already has one." << std::endl;
-        return;
-    }
-    canvas_panels[document] = std::make_unique<CanvasPanels::CanvasPanel>(doc_service, document);
-    std::string window_name = canvas_panels[document]->get_panel_name();
-    ImGui::DockBuilderDockWindow(window_name.c_str(), canvas_dock_id);
-
-    std::cout << "UI added panel for document." << std::endl;
-}
-
-void UI::remove_panel(const std::shared_ptr<Domain::Documents::Document> doc_session) {
-    auto it = canvas_panels.find(doc_session);
-    if (it == canvas_panels.end()) {
-        std::cerr << "UI cannot remove panel for document. No panel to remove." << std::endl;
-        return;
-    }
-    canvas_panels.erase(it);
-    std::cout << "UI removed panel for document." << std::endl;
 }
 
 /* Theme was found at: https://github.com/ocornut/imgui/issues/707#issuecomment-4107169777 */

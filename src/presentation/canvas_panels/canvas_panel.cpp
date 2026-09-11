@@ -1,6 +1,5 @@
 #include "canvas_panel.hpp"
 #include "imgui.h"
-#include "imgui_internal.h"
 #include <iostream>
 #include <limits>
 #include <unordered_set>
@@ -33,13 +32,13 @@ static void return_canvas_number(int number) {
 CanvasPanel::CanvasPanel(Application::Documents::DocumentService& doc_service, std::weak_ptr<Domain::Documents::Document> document)
  : doc_service(doc_service), document(document) {
     panel_no = get_canvas_number();
+    // TODO: Add #[DOC.UUID] to panel name.
+    // So that ImGui doesn't think a future CanvasPanel of the same name is the same panel.
     panel_name = "Image " + std::to_string(panel_no);
 }
 
 CanvasPanel::~CanvasPanel() {
     return_canvas_number(panel_no);
-    // Make ImGui forget our window name. So that it can be cleanly reused.
-    ImGui::ClearWindowSettings(panel_name.c_str());
 }
 
 bool CanvasPanel::render() {
