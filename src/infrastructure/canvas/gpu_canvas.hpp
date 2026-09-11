@@ -17,19 +17,23 @@ public: // Ctors
     GpuCanvas(glm::uvec2 size);
     ~GpuCanvas() = default;
 
-public: // Canvas implementation
+/* Canvas Implementation */
+public: // Render
     void render(glm::vec2 position) override;
+public: // Layer management
     [[nodiscard]] int get_layer_count() const noexcept override;
     [[nodiscard]] std::weak_ptr<Domain::Documents::CanvasLayer> get_layer(int ind) const override;
     std::weak_ptr<Domain::Documents::CanvasLayer> add_layer() override;
     void remove_layer(int ind) override;
     void move_layer(int from, int to) override;
+public: // Zoom
+    void fit_screen(glm::vec2 screen_size) override;
 
 private: // Data
     Rendering::Texture texture;
+    Rendering::Material material;
+    Rendering::Plane plane;
     std::list<std::shared_ptr<GpuCanvasLayer>> layers;
-    std::unique_ptr<Rendering::Material> material = std::make_unique<Rendering::Material>();
-    std::unique_ptr<Rendering::Plane> plane = std::make_unique<Rendering::Plane>();
     Compute::TextureCompositor compositor;
 };
 

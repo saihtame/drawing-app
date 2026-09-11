@@ -12,7 +12,7 @@ namespace Infrastructure::Rendering {
 // Share shader program across all materials
 static std::shared_ptr<ShaderProgram> shader_program;
 
-Material::Material() {
+Material::Material(glm::vec2 size) : size(size) {
     // Initialize shader program
     if (shader_program == nullptr) {
         shader_program = std::make_unique<ShaderProgram>();
@@ -39,12 +39,7 @@ void Material::use(glm::vec2 position, uint32_t texture_id) {
 
     // Pixel space to screen space projection (y-down, top-left origin)
     glm::mat4 projection = glm::ortho(0.0f, width, height, 0.0f);
-
-    // Calculate transform
-    glm::vec3 world_pos = {position.x, position.y, 0.0f};
-    glm::mat4 transform = glm::translate(glm::mat4(1.0f), world_pos) // Position
-                        * glm::mat4_cast(orientation);               // Rotation
-    transform =           glm::scale(transform, scale);              // Scale
+    auto transform = get_transform(position);
 
     // Setup shader program
     shader_program->use();
@@ -52,6 +47,29 @@ void Material::use(glm::vec2 position, uint32_t texture_id) {
     shader_program->set_uniform_matrix("transform", transform);
     // Bind image data
     glBindTextureUnit(0, texture_id);
+}
+
+void Material::set_size(glm::vec2 value) {
+    size = value;
+    update_scale();
+}
+
+void Material::set_scale(float value) {
+    scale_factor = value;
+    update_scale();
+}
+
+inline glm::mat4 Material::get_transform(glm::uvec2 position) const {
+    // Calculate transform
+    glm::vec3 world_pos = {position.x, position.y, 0.0f};
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), world_pos) // Position
+                        * glm::mat4_cast(orientation);               // Rotation
+    transform =           glm::scale(transform, scale);              // Scale
+    return transform;
+}
+
+inline void Material::update_scale() {
+    scale = glm::vec3(size * scale_factor, 1.0f);
 }
 
 }

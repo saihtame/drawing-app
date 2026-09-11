@@ -1,5 +1,6 @@
 #include "canvas_panel.hpp"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include <iostream>
 #include <limits>
 #include <unordered_set>
@@ -37,6 +38,8 @@ CanvasPanel::CanvasPanel(Application::Documents::DocumentService& doc_service, s
 
 CanvasPanel::~CanvasPanel() {
     return_canvas_number(panel_no);
+    // Make ImGui forget our window name. So that it can be cleanly reused.
+    ImGui::ClearWindowSettings(panel_name.c_str());
 }
 
 bool CanvasPanel::render() {
@@ -44,6 +47,20 @@ bool CanvasPanel::render() {
         return false;
 
     bool visible = ImGui::Begin(panel_name.c_str(), &open, flags);
+
+    // Check for first render
+    if (ImGui::IsWindowAppearing()) {
+        if (auto document_locked = document.lock()) {
+            // Fit canvas to screen
+            if (auto canvas = document_locked->get_canvas().lock()) {
+                auto screen_size = ImGui::GetContentRegionAvail();
+                canvas->fit_screen({screen_size.x, screen_size.y});
+                std::cout << "First render" << std::endl;
+            }
+        }
+    }
+
+    // If panel is visible, render our canvas
     if (visible) {
         if (auto document_locked = document.lock()) {
             // Ensure document is set as active document

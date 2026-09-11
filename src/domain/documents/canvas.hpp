@@ -21,6 +21,9 @@ public: // Layer management
     virtual void remove_layer(int ind) = 0;
     virtual void move_layer(int from, int to) = 0;
 
+public: // Zoom
+    virtual void fit_screen(glm::vec2 screen_size) = 0;
+
 protected: // Data
     glm::uvec2 size = {0.0, 0.0};
 };

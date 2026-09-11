@@ -2,14 +2,16 @@
 #include "domain/documents/canvas_layer.hpp"
 #include "gpu_canvas_layer.hpp"
 #include "glad/gl.h"
+#include "infrastructure/rendering/material.hpp"
 #include "infrastructure/rendering/texture.hpp"
+#include <glm/common.hpp>
 #include <iostream>
 #include <stdexcept>
 
 
 namespace Infrastructure::Canvas {
 
-GpuCanvas::GpuCanvas(glm::uvec2 size) : Canvas(size), texture(size) {
+GpuCanvas::GpuCanvas(glm::uvec2 size) : Canvas(size), texture(size), material(size) {
 }
 
 void GpuCanvas::render(glm::vec2 position) {
@@ -21,15 +23,6 @@ void GpuCanvas::render(glm::vec2 position) {
     // Disable alpha blending
     glDisable(GL_BLEND);
 
-    if (material == nullptr) {
-        std::cerr << "Material null" << std::endl;
-        return;
-    }
-    if (plane == nullptr) {
-        std::cerr << "Plane is null" << std::endl;
-        return;
-    }
-
     std::vector<uint32_t> layer_tex_ids;
     layer_tex_ids.reserve(layers.size());
     for (const auto& layer : layers) {
@@ -37,8 +30,8 @@ void GpuCanvas::render(glm::vec2 position) {
     }
     compositor.composit(size, texture, layer_tex_ids);
 
-    material->use(position, texture.get_id());
-    plane->render();
+    material.use(position, texture.get_id());
+    plane.render();
 }
 
 int GpuCanvas::get_layer_count() const noexcept {
@@ -92,6 +85,16 @@ void GpuCanvas::move_layer(int from, int to) {
     }
 
     layers.splice(to_it, layers, from_it);
+}
+
+void GpuCanvas::fit_screen(glm::vec2 screen_size) {
+    float max_width =  screen_size.x / size.x;
+    float max_height = screen_size.y / size.y;
+
+
+    float scale = glm::min(max_width, max_height);
+    std::cout << "Max Width: " << max_width << "\tMax Height: " << max_height << "\tScale selected: " << scale << std::endl;
+    material.set_scale(scale);
 }
 
 }
