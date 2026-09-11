@@ -5,7 +5,6 @@
 #include "infrastructure/rendering/material.hpp"
 #include "infrastructure/rendering/texture.hpp"
 #include <glm/common.hpp>
-#include <iostream>
 #include <stdexcept>
 
 
@@ -87,14 +86,16 @@ void GpuCanvas::move_layer(int from, int to) {
     layers.splice(to_it, layers, from_it);
 }
 
+void GpuCanvas::set_zoom(float value) {
+    material.set_zoom(value);
+}
+
 void GpuCanvas::fit_screen(glm::vec2 screen_size) {
     float max_width =  screen_size.x / size.x;
     float max_height = screen_size.y / size.y;
 
-
     float scale = glm::min(max_width, max_height);
-    std::cout << "Max Width: " << max_width << "\tMax Height: " << max_height << "\tScale selected: " << scale << std::endl;
-    material.set_scale(scale);
+    material.set_zoom(scale);
 }
 
 }

@@ -27,6 +27,7 @@ public: // Layer management
     void remove_layer(int ind) override;
     void move_layer(int from, int to) override;
 public: // Zoom
+    void set_zoom(float value) override;
     void fit_screen(glm::vec2 screen_size) override;
 
 private: // Data

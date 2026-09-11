@@ -54,8 +54,8 @@ void Material::set_size(glm::vec2 value) {
     update_scale();
 }
 
-void Material::set_scale(float value) {
-    scale_factor = value;
+void Material::set_zoom(float value) {
+    zoom = value;
     update_scale();
 }
 
@@ -69,7 +69,7 @@ inline glm::mat4 Material::get_transform(glm::uvec2 position) const {
 }
 
 inline void Material::update_scale() {
-    scale = glm::vec3(size * scale_factor, 1.0f);
+    scale = glm::vec3(size * zoom, 1.0f);
 }
 
 }

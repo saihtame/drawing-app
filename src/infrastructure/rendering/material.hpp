@@ -18,15 +18,15 @@ public:
 public: // Getters and setters
     void set_size(glm::vec2 value);
     glm::vec2 get_size() const { return size; }
-    void set_scale(float value);
-    float get_scale() const { return scale_factor; }
+    void set_zoom(float value);
+    float get_zoom() const { return zoom; }
 
 private:
     glm::quat orientation = glm::identity<glm::quat>();
     // Size in pixels of the canvas we are representing
     glm::vec2 size {1.0, 1.0};
     // Scale
-    float scale_factor = 1.0;
+    float zoom = 1.0;
     // Size in pixels, in which the canvas will be rendered
     glm::vec3 scale {1.0, 1.0, 1.0};
 

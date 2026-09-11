@@ -22,6 +22,7 @@ public: // Layer management
     virtual void move_layer(int from, int to) = 0;
 
 public: // Zoom
+    virtual void set_zoom(float value) = 0;
     virtual void fit_screen(glm::vec2 screen_size) = 0;
 
 protected: // Data

@@ -12,7 +12,7 @@ MenuBar::MenuBar(Application::Documents::DocumentService& doc_service,
 
 void MenuBar::render() {
     if(ImGui::BeginMainMenuBar()) {
-        // File menu
+        /* File menu */
         if (ImGui::BeginMenu("File", true)) {
             // New File
             if (ImGui::MenuItem("New file")) {
@@ -33,6 +33,14 @@ void MenuBar::render() {
             }
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("View", true)) {
+            // New File
+            if (ImGui::MenuItem("Fit to screen")) {
+                fit_to_screen();
+            }
+            ImGui::EndMenu();
+        }
+        /* View menu */
         ImGui::EndMainMenuBar();
     }
 }
@@ -43,15 +51,22 @@ inline void MenuBar::new_file() {
 }
 
 inline void MenuBar::load_file() {
-    
 }
 
 inline void MenuBar::save_file() {
-
 }
 
 inline void MenuBar::save_file_as() {
+}
 
+inline void MenuBar::fit_to_screen() {
+    auto active_document = doc_service.get_active_document();
+    if (auto document_locked = active_document.lock()) {
+        if (auto canvas = document_locked->get_canvas().lock()) {
+            //canvas->fit_screen(glm::vec2 screen_size)
+        }
+    }
 }
 
 }
+

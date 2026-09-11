@@ -13,11 +13,14 @@ public:
 
     void render();
 
-private: // Helpers
+private: // File menu
     inline void new_file();
     inline void load_file();
     inline void save_file();
     inline void save_file_as();
+
+private: // View menu
+    inline void fit_to_screen();
 
 private: // Dependencies
     Application::Documents::DocumentService& doc_service;

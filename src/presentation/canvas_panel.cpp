@@ -55,7 +55,6 @@ bool CanvasPanel::render() {
             if (auto canvas = document_locked->get_canvas().lock()) {
                 auto screen_size = ImGui::GetContentRegionAvail();
                 canvas->fit_screen({screen_size.x, screen_size.y});
-                std::cout << "First render" << std::endl;
             }
         }
     }
