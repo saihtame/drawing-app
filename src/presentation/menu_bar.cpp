@@ -12,32 +12,43 @@ MenuBar::MenuBar(CanvasPanels::CanvasPanelService& canvas_panel_service,
 }
 
 void MenuBar::render() {
+    auto active_document = doc_service.get_active_document();
+    bool has_active_document = !active_document.expired();
+
     if(ImGui::BeginMainMenuBar()) {
         /* File menu */
         if (ImGui::BeginMenu("File", true)) {
             // New File
-            if (ImGui::MenuItem("New file")) {
+            if (ImGui::MenuItem("New file"))
                 new_file();
-            }
             // Load File
-            if (ImGui::MenuItem("Load file")) {
+            if (ImGui::MenuItem("Load file"))
                 load_file();
-            }
-            bool can_save = false;
             // Save File
-            if (ImGui::MenuItem("Save file", "", false, can_save)) {
+            if (ImGui::MenuItem("Save file", "", false, has_active_document))
                 save_file();
-            }
             // Save File As
-            if (ImGui::MenuItem("Save file as", "", false, can_save)) {
-                save_file_as();
-            }
+            if (ImGui::MenuItem("Save file as", "", false, has_active_document))
             ImGui::EndMenu();
         }
+        /* View menu */
         if (ImGui::BeginMenu("View", true)) {
-            // New File
-            if (ImGui::MenuItem("Fit to screen")) {
+            // Fit to screen
+            if (ImGui::MenuItem("Fit to screen", "", false, has_active_document))
                 fit_to_screen();
+            // Zoom menu
+            if (ImGui::BeginMenu("Zoom", has_active_document)) {
+                if (ImGui::MenuItem("200%", "", false))
+                    set_zoom(2.0);
+                if (ImGui::MenuItem("150%", "", false))
+                    set_zoom(1.5);
+                if (ImGui::MenuItem("100%", "", false))
+                    set_zoom(1.0);
+                if (ImGui::MenuItem("50%", "", false))
+                    set_zoom(0.5);
+                if (ImGui::MenuItem("25%", "", false))
+                    set_zoom(0.25);
+                ImGui::EndMenu();
             }
             ImGui::EndMenu();
         }
@@ -68,6 +79,15 @@ inline void MenuBar::fit_to_screen() {
             if (auto panel_locked = panel.lock()) {
                 panel_locked->request_fit_to_screen();
             }
+        }
+    }
+}
+
+inline void MenuBar::set_zoom(float value) {
+    auto active_document = doc_service.get_active_document();
+    if (auto document_locked = active_document.lock()) {
+        if (auto canvas = document_locked->get_canvas().lock()) {
+            canvas->set_zoom(value);
         }
     }
 }
