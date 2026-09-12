@@ -29,6 +29,7 @@ void MenuBar::render() {
                 save_file();
             // Save File As
             if (ImGui::MenuItem("Save file as", "", false, has_active_document))
+                save_file_as();
             ImGui::EndMenu();
         }
         /* View menu */
