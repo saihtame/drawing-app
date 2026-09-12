@@ -5,9 +5,10 @@
 
 namespace  Presentation {
 
-MenuBar::MenuBar(Application::Documents::DocumentService& doc_service,
+MenuBar::MenuBar(CanvasPanels::CanvasPanelService& canvas_panel_service,
+                 Application::Documents::DocumentService& doc_service,
                  Popups::PopupManager& popup_manager)
- : doc_service(doc_service), popup_manager(popup_manager) {
+ : canvas_panel_service(canvas_panel_service), doc_service(doc_service), popup_manager(popup_manager) {
 }
 
 void MenuBar::render() {
@@ -63,7 +64,10 @@ inline void MenuBar::fit_to_screen() {
     auto active_document = doc_service.get_active_document();
     if (auto document_locked = active_document.lock()) {
         if (auto canvas = document_locked->get_canvas().lock()) {
-            //canvas->fit_screen(glm::vec2 screen_size)
+            auto panel = canvas_panel_service.get_canvas_panel(document_locked->get_uuid());
+            if (auto panel_locked = panel.lock()) {
+                panel_locked->request_fit_to_screen();
+            }
         }
     }
 }

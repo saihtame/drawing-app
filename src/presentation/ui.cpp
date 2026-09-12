@@ -16,7 +16,7 @@ std::shared_ptr<UI> UI::create(Application::Documents::DocumentService& doc_serv
 }
 
 UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window, void* gl_context)
- : window(window), canvas_panel_service(doc_service), menu_bar(doc_service, popup_manager), layers_panel(doc_service), doc_service(doc_service) {
+ : window(window), canvas_panel_service(doc_service), menu_bar(canvas_panel_service, doc_service, popup_manager), layers_panel(doc_service), doc_service(doc_service) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

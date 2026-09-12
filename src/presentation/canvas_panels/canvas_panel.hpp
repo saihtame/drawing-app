@@ -18,11 +18,20 @@ public:
     [[nodiscard]] bool render();
     const std::string& get_panel_name() const;
 
+public:
+    void request_fit_to_screen() { fit_to_screen_pending = true; }
+
 private:
     std::weak_ptr<Domain::Documents::Document> document;
     std::string panel_name = "";
     int panel_no;
     bool open = true;
+
+private: // Action flags
+    bool fit_to_screen_pending = false;
+
+private: // Helpers
+    inline void fit_to_screen();
 
 private: // Constants
     // ImGui window flags

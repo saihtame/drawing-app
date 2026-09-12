@@ -1,5 +1,6 @@
 #pragma once
 #include "application/documents/document_service.hpp"
+#include "canvas_panels/canvas_panel_service.hpp"
 #include "popups/popup_manager.hpp"
 
 
@@ -7,7 +8,8 @@ namespace Presentation {
 
 class MenuBar {
 public:
-    MenuBar(Application::Documents::DocumentService& doc_service,
+    MenuBar(CanvasPanels::CanvasPanelService& canvas_panel_service,
+            Application::Documents::DocumentService& doc_service,
             Popups::PopupManager& popup_manager);
     ~MenuBar() = default;
 
@@ -23,6 +25,7 @@ private: // View menu
     inline void fit_to_screen();
 
 private: // Dependencies
+    CanvasPanels::CanvasPanelService& canvas_panel_service;
     Application::Documents::DocumentService& doc_service;
     Popups::PopupManager& popup_manager;
 };
