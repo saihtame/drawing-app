@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <memory>
-#include <unordered_set>
+#include <unordered_map>
 #include "domain/documents/canvas_factory.hpp"
 #include "domain/documents/document.hpp"
 #include "document_serializer.hpp"
@@ -26,12 +26,15 @@ private: // Dependencies
 
 public: // Documents
     void new_document(glm::uvec2 size);
-    const std::unordered_set<std::shared_ptr<Domain::Documents::Document>>& get_documents() const;
-    void close_document(const std::shared_ptr<Domain::Documents::Document>& document);
+    const std::unordered_map<UUIDv4::UUID, std::shared_ptr<Domain::Documents::Document>>& get_documents() const;
+    void close_document(const UUIDv4::UUID& uuid);
 
 public: // Active document
     void set_active_document(std::shared_ptr<Domain::Documents::Document> document);
     [[nodiscard]] std::weak_ptr<Domain::Documents::Document> get_active_document() const;
+
+public: // Lookup
+    [[nodiscard]] std::shared_ptr<Domain::Documents::Document> get_document(const UUIDv4::UUID& uuid) const;
 
 public: // Serialization
     void load_document(std::filesystem::path path);
@@ -44,9 +47,9 @@ private:
     inline void notify_observers();
 
 private: // Data
-    std::unordered_set<std::shared_ptr<Domain::Documents::Document>> documents;
+    std::unordered_map<UUIDv4::UUID, std::shared_ptr<Domain::Documents::Document>> documents;
     std::vector<std::weak_ptr<DocumentServiceObserver>> observers;
-    std::shared_ptr<Domain::Documents::Document> active_document;
+    UUIDv4::UUID active_document_uuid;
 };
 
 }

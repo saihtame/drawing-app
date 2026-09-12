@@ -19,6 +19,7 @@ public:
 
 public: // Accessors
     [[nodiscard]] const std::string& get_name() const noexcept { return layer_name; }
+    [[nodiscard]] UUIDv4::UUID get_uuid() const noexcept { return uuid; }
     [[nodiscard]] bool is_visible() const noexcept { return visible; }
 
 protected: // Data

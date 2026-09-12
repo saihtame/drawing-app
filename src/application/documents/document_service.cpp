@@ -2,7 +2,6 @@
 #include "document_serializer.hpp"
 #include <iostream>
 #include <stdexcept>
-#include <unordered_set>
 
 
 namespace Application::Documents {
@@ -25,19 +24,27 @@ void DocumentService::new_document(glm::uvec2 size) {
     } else {
         std::cerr << "Failed to initial canvas layer" << std::endl;
     }
-    documents.insert(document);
+    documents.insert({document->get_uuid(), document});
     notify_observers();
 #ifdef _DEBUG
     std::cout << "Created new document" << std::endl;
 #endif
 }
 
-const std::unordered_set<std::shared_ptr<Domain::Documents::Document>>& DocumentService::get_documents() const {
+const std::unordered_map<UUIDv4::UUID, std::shared_ptr<Domain::Documents::Document>>& DocumentService::get_documents() const {
     return documents;
 }
 
-void DocumentService::close_document(const std::shared_ptr<Domain::Documents::Document>& document) {
-    auto it = documents.find(document);
+std::shared_ptr<Domain::Documents::Document> DocumentService::get_document(const UUIDv4::UUID& uuid) const {
+    auto it = documents.find(uuid);
+    if (it == documents.end()) {
+        return nullptr;
+    }
+    return it->second;
+}
+
+void DocumentService::close_document(const UUIDv4::UUID& uuid) {
+    auto it = documents.find(uuid);
     if (it == documents.end()) {
         throw std::invalid_argument("Document not part of document service.");
     }
@@ -50,13 +57,13 @@ void DocumentService::close_document(const std::shared_ptr<Domain::Documents::Do
 }
 
 void DocumentService::set_active_document(std::shared_ptr<Domain::Documents::Document> document) {
-    if (active_document == document) return;
-    active_document = document;
+    if (active_document_uuid == document->get_uuid()) return;
+    active_document_uuid = document->get_uuid();
     notify_observers();
 }
 
 [[nodiscard]] std::weak_ptr<Domain::Documents::Document> DocumentService::get_active_document() const {
-    return active_document;
+    return get_document(active_document_uuid);
 }
 
 void DocumentService::load_document(std::filesystem::path path) {
@@ -66,7 +73,7 @@ void DocumentService::load_document(std::filesystem::path path) {
         return;
     }
 
-    documents.insert(document);
+    documents.insert({document->get_uuid(), document});
     notify_observers();
 #ifdef _DEBUG
     std::cout << "Loaded document from " << path << std::endl;

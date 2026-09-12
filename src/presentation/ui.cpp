@@ -1,5 +1,4 @@
 #include "ui.hpp"
-#include "domain/documents/document.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
@@ -112,16 +111,16 @@ void UI::render() {
     layers_panel.render();
 
     // Render canvas panels
-    std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
-    for (const auto& [doc, panel] : canvas_panel_service.get_panels()) {
-        bool should_remove = panel->render();
+    std::vector<UUIDv4::UUID> uuids_to_remove;
+    for (const auto& doc_panel_pair : canvas_panel_service.get_panels()) {
+        bool should_remove = doc_panel_pair.second->render();
         if (should_remove) {
-            docs_to_remove.push_back(doc);
+            uuids_to_remove.push_back(doc_panel_pair.first);
         }
     }
     // Remove documents from DocumentService, if they have been closed
-    for (const auto& doc : docs_to_remove) {
-        doc_service.close_document(doc);
+    for (const auto& uuid : uuids_to_remove) {
+        doc_service.close_document(uuid);
     }
 
     // Render frame
@@ -131,28 +130,28 @@ void UI::render() {
 
 void UI::document_service_update() {
     // Get all loaded documents for doc service
-    auto loaded_docs = doc_service.get_documents();
+    const auto& loaded_docs = doc_service.get_documents();
 
-    for (const auto& doc_session : loaded_docs) {
+    for (const auto& [uuid, document] : loaded_docs) {
         // Check that we have a canvas window for each loaded document
-        if (!canvas_panel_service.contains(doc_session)) {
-            canvas_panel_service.add_panel(doc_session);
+        if (!canvas_panel_service.contains(uuid)) {
+            canvas_panel_service.add_panel(uuid, document);
             // Dock the new panel into the central canvas area
-            if (auto panel = canvas_panel_service.get_canvas_panel(doc_session).lock()) {
+            if (auto panel = canvas_panel_service.get_canvas_panel(uuid).lock()) {
                 ImGui::DockBuilderDockWindow(panel->get_panel_name().c_str(), canvas_dock_id);
             }
         }
     }
 
     // Check if we have canvas for non loaded document
-    std::vector<std::shared_ptr<Domain::Documents::Document>> docs_to_remove;
+    std::vector<UUIDv4::UUID> uuids_to_remove;
     for (const auto& doc_panel_pair : canvas_panel_service.get_panels()) {
         if (!loaded_docs.contains(doc_panel_pair.first)) {
-            docs_to_remove.push_back(doc_panel_pair.first);
+            uuids_to_remove.push_back(doc_panel_pair.first);
         }
     }
-    for (const auto& doc : docs_to_remove) {
-        canvas_panel_service.remove_panel(doc);
+    for (const auto& uuid : uuids_to_remove) {
+        canvas_panel_service.remove_panel(uuid);
     }
 }
 
