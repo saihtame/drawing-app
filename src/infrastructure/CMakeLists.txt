@@ -9,6 +9,7 @@ add_library(${INFRASTRUCTURE_TARGET} STATIC
     rendering/material.cpp
     rendering/texture.cpp
     compute/texture_compositor.cpp
+    tools/brush_tool.cpp
 )
 
 target_include_directories(${INFRASTRUCTURE_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)

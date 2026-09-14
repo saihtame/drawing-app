@@ -96,6 +96,7 @@ inline void CanvasPanel::fit_to_screen() {
             canvas->fit_screen({screen_size.x, screen_size.y});
         }
     }
+    fit_to_screen_pending = false;
 }
 
 }

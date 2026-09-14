@@ -1,5 +1,6 @@
 add_library(${APPLICATION_TARGET} STATIC
     documents/document_service.cpp
+    tools/toolbar.cpp
 )
 
 target_include_directories(${APPLICATION_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)
