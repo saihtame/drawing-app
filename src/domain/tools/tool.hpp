@@ -6,6 +6,7 @@
 namespace Domain::Tools {
 
 enum ToolType {
+    TOOL_TYPE_PAN,
     TOOL_TYPE_BRUSH,
 };
 

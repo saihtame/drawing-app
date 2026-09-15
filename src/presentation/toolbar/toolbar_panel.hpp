@@ -18,15 +18,16 @@ public: // Public methods
 private: // Helpers
     inline void load_icons();
     inline uint32_t load_texture(const std::string& path);
-    inline bool render_tool_button(const std::shared_ptr<Domain::Tools::Tool> tool);
+    inline ImVec2 render_tool_button(const std::shared_ptr<Domain::Tools::Tool> tool);
 
 private: // Data
     std::unordered_map<Domain::Tools::ToolType, int> tool_icons;
 
 private: // Constants
-    ImVec2 icon_size = {32, 32};
+    ImVec2 icon_size = {64, 64};
     std::unordered_map<Domain::Tools::ToolType, std::string> tool_icon_paths = {
-        {Domain::Tools::TOOL_TYPE_BRUSH, "assets/icons/brush.png"}
+        {Domain::Tools::TOOL_TYPE_PAN, "assets/icons/brush.png"},
+        {Domain::Tools::TOOL_TYPE_BRUSH, "assets/icons/brush.png"},
     };
 
 private: // Dependencies

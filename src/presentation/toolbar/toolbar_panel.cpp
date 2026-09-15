@@ -14,11 +14,18 @@ ToolbarPanel::ToolbarPanel(Application::Tools::Toolbar& toolbar)
 void ToolbarPanel::render() {
     ImGui::Begin("Tools");
 
-
+    // TODO: Make a better system for determining when we have romm
+    // to render on the same line or not.
+    int width = ImGui::GetContentRegionAvail().x;
+    int width_left = width;
     for (const auto& tool : toolbar.get_tools()) {
-        bool clicked = render_tool_button(tool);
-        if (clicked)
-            toolbar.set_active_tool(tool);
+        if (width_left >= icon_size.x) {
+            ImGui::SameLine();
+        } else {
+            width_left = width;
+        }
+        ImVec2 size = render_tool_button(tool);
+        width_left -= size.x;
     }
 
     ImGui::End();
@@ -51,22 +58,26 @@ inline uint32_t ToolbarPanel::load_texture(const std::string& path) {
     return image_texture;
 }
 
-inline bool ToolbarPanel::render_tool_button(const std::shared_ptr<Domain::Tools::Tool> tool) {
+inline ImVec2 ToolbarPanel::render_tool_button(const std::shared_ptr<Domain::Tools::Tool> tool) {
     // Determine if tool is selected
     const auto& active_tool = toolbar.get_active_tool();
     bool selected = tool == active_tool;
     // Get tool name as c string
     std::string tool_name = tool->get_tool_name();
     const char* tool_name_c = tool_name.c_str();
+    // Calculate text size
     ImVec2 text_size = ImGui::CalcTextSize(tool_name_c);
+    // Calculate total size (Text and Icon)
     ImVec2 total_size = {std::max(icon_size.x, text_size.x) + 4, icon_size.y + text_size.y + 4};
+    // Get screen pos
     ImVec2 pos = ImGui::GetCursorScreenPos();
+    // Get texture id
     uint32_t texture_id;
     if (tool_icons.contains(tool->get_tool_type())) {
         texture_id = tool_icons[tool->get_tool_type()];
     } else {
         std::cerr << "Tool icon not found" << std::endl;
-        return false;
+        return {0, 0};
     }
 
     // Render tool
@@ -91,7 +102,11 @@ inline bool ToolbarPanel::render_tool_button(const std::shared_ptr<Domain::Tools
 
     ImGui::EndGroup();
 
-    return clicked;
+    // Set tool to active, if clicked
+    if (clicked)
+        toolbar.set_active_tool(tool);
+
+    return total_size;
 }
 
 }

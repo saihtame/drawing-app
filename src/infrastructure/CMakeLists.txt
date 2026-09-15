@@ -9,6 +9,7 @@ add_library(${INFRASTRUCTURE_TARGET} STATIC
     rendering/material.cpp
     rendering/texture.cpp
     compute/texture_compositor.cpp
+    tools/pan_tool.cpp
     tools/brush_tool.cpp
 )
 
