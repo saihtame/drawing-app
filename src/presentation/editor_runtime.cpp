@@ -25,8 +25,9 @@ void GLAPIENTRY MessageCallback(GLenum,
             type, severity, message );
 }
 
-EditorRuntime::EditorRuntime(Application::Documents::DocumentService& doc_service) 
-    : doc_service(doc_service) {
+EditorRuntime::EditorRuntime(Application::Documents::DocumentService& doc_service,
+                             Application::Tools::Toolbar& toolbar)
+    : doc_service(doc_service), toolbar(toolbar) {
 }
 
 EditorRuntime::~EditorRuntime() {
@@ -45,7 +46,7 @@ int EditorRuntime::run() {
         std::cerr << "Failed to initialize windows" << std::endl;
         return -1;
     }
-    ui = UI::create(doc_service, win, gl_context);
+    ui = UI::create(doc_service, toolbar, win, gl_context);
 
     /* Loop */
     while (!quit) {

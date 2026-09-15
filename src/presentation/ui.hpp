@@ -5,7 +5,9 @@
 #include "menu_bar.hpp"
 #include "popups/popup_manager.hpp"
 #include "canvas_panels/canvas_panel_service.hpp"
+#include "presentation/editor_runtime.hpp"
 #include "presentation/layers_panel.hpp"
+#include "presentation/toolbar/toolbar_panel.hpp"
 #include <glm/vec4.hpp>
 
 
@@ -20,11 +22,13 @@ public:
     // Ensures that UI is created inside a shared_ptr, which it requires
     // to create weak_ptrs from itself.
     static std::shared_ptr<UI> create(Application::Documents::DocumentService& doc_service,
-       SDL_Window* window, void* gl_context);
+                                      Application::Tools::Toolbar& toolbar,
+                                      SDL_Window* window, void* gl_context);
     ~UI();
 
 private:
     UI(Application::Documents::DocumentService& doc_service,
+       Application::Tools::Toolbar& toolbar,
        SDL_Window* window, void* gl_context);
 
 public:
@@ -36,6 +40,7 @@ public: // DocumentServiceObserver implementation
 
 private: // Dependencies
     Application::Documents::DocumentService& doc_service;
+    Application::Tools::Toolbar& toolbar;
 
 private: // Members
     bool first_render = true;
@@ -44,6 +49,7 @@ private: // Members
     // UI Components:
     Popups::PopupManager popup_manager;
     CanvasPanels::CanvasPanelService canvas_panel_service;
+    Toolbar::ToolbarPanel toolbar_panel;
     MenuBar menu_bar;
     LayersPanel layers_panel;
 

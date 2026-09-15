@@ -1,11 +1,17 @@
 #include "toolbar.hpp"
+#include <stdexcept>
 
 
 namespace Application::Tools {
 
 
-Toolbar::Toolbar(std::vector<std::shared_ptr<Domain::Tools::Tool>> tools) {
-    loaded_tools = tools;
+Toolbar::Toolbar(std::vector<std::shared_ptr<Domain::Tools::Tool>> tools) 
+ : loaded_tools(tools) {
+    if (tools.empty()) {
+        throw std::invalid_argument("Tools list cannot be empty");
+    }
+    // Default to first tool as active
+    active_tool = tools[0];
 }
 
 const std::vector<std::shared_ptr<Domain::Tools::Tool>> Toolbar::get_tools() const {

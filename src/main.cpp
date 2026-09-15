@@ -19,7 +19,7 @@ int main() {
     };
     Application::Tools::Toolbar toolbar(tools);
     // Runtime
-    Presentation::EditorRuntime runtime(doc_service);
+    Presentation::EditorRuntime runtime(doc_service, toolbar);
 
     /* Run */
     return runtime.run();

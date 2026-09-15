@@ -5,6 +5,7 @@
 #include "infrastructure/rendering/plane.hpp"
 #include "infrastructure/rendering/texture.hpp"
 #include "infrastructure/compute/texture_compositor.hpp"
+#include "uuid_v4.h"
 #include <glm/ext/vector_uint2.hpp>
 #include <list>
 #include <memory>
@@ -26,9 +27,15 @@ public: // Layer management
     std::weak_ptr<Domain::Documents::CanvasLayer> add_layer() override;
     void remove_layer(int ind) override;
     void move_layer(int from, int to) override;
+public: // Selected layer
+    std::weak_ptr<Domain::Documents::CanvasLayer> get_selected_layer() const override;
+    void set_selected_layer(UUIDv4::UUID layer) override;
 public: // Zoom
     void set_zoom(float value) override;
     void fit_screen(glm::vec2 screen_size) override;
+
+private: // Helpers
+    std::weak_ptr<GpuCanvasLayer> get_gpu_layer(UUIDv4::UUID uuid);
 
 private: // Data
     Rendering::Texture texture;
@@ -36,6 +43,7 @@ private: // Data
     Rendering::Plane plane;
     std::list<std::shared_ptr<GpuCanvasLayer>> layers;
     Compute::TextureCompositor compositor;
+    std::weak_ptr<GpuCanvasLayer> selected_layer;
 };
 
 }

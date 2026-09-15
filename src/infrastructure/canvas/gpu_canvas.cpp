@@ -5,6 +5,7 @@
 #include "infrastructure/rendering/material.hpp"
 #include "infrastructure/rendering/texture.hpp"
 #include <glm/common.hpp>
+#include <memory>
 #include <stdexcept>
 
 
@@ -86,6 +87,14 @@ void GpuCanvas::move_layer(int from, int to) {
     layers.splice(to_it, layers, from_it);
 }
 
+std::weak_ptr<Domain::Documents::CanvasLayer> GpuCanvas::get_selected_layer() const {
+    return selected_layer;
+}
+
+void GpuCanvas::set_selected_layer(UUIDv4::UUID layer_id) {
+    auto layer = get_gpu_layer(layer_id);
+}
+
 void GpuCanvas::set_zoom(float value) {
     material.set_zoom(value);
 }
@@ -96,6 +105,15 @@ void GpuCanvas::fit_screen(glm::vec2 screen_size) {
 
     float scale = glm::min(max_width, max_height);
     material.set_zoom(scale);
+}
+
+std::weak_ptr<GpuCanvasLayer> GpuCanvas::get_gpu_layer(UUIDv4::UUID uuid) {
+    for (const auto& layer : layers) {
+        if (layer->get_uuid() == uuid)
+            return layer;
+    }
+    // Not found
+    return std::weak_ptr<GpuCanvasLayer>();
 }
 
 }

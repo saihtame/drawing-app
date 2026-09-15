@@ -1,5 +1,6 @@
 #pragma once
 #include "application/documents/document_service.hpp"
+#include "application/tools/toolbar.hpp"
 #include <SDL3/SDL_video.h>
 #include <glm/detail/qualifier.hpp>
 #include <glm/ext/vector_int2.hpp>
@@ -11,11 +12,13 @@ class UI;
 
 class EditorRuntime {
 public:
-    EditorRuntime(Application::Documents::DocumentService& doc_service);
+    EditorRuntime(Application::Documents::DocumentService& doc_service,
+                  Application::Tools::Toolbar& toolbar);
     ~EditorRuntime();
 
 private: // Dependencies
     Application::Documents::DocumentService& doc_service;
+    Application::Tools::Toolbar& toolbar;
 
 public: // Public methods
     int run();

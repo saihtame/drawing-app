@@ -20,6 +20,10 @@ private: // Dependencies
     const CanvasFactory& canvas_factory;
 
 public: // Getters
+    /**
+     * @brief Returns a weak_ptr to the canvas.
+     * The canvas is created imediately, so this should always return a non-expired ptr.
+     */
     [[nodiscard]] std::weak_ptr<Canvas> get_canvas() const noexcept;
     [[nodiscard]] UUIDv4::UUID get_uuid() const noexcept { return uuid; }
 

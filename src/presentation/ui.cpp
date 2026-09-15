@@ -3,20 +3,27 @@
 #include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
+#include "presentation/editor_runtime.hpp"
 #include <glad/gl.h>
 
 
 namespace Presentation {
 
 std::shared_ptr<UI> UI::create(Application::Documents::DocumentService& doc_service,
+                               Application::Tools::Toolbar& toolbar,
                                SDL_Window* window, void* gl_context) {
-    auto ui = std::shared_ptr<UI>(new UI(doc_service, window, gl_context));
+    auto ui = std::shared_ptr<UI>(new UI(doc_service, toolbar, window, gl_context));
     doc_service.register_observer(ui);
     return ui;
 }
 
-UI::UI(Application::Documents::DocumentService& doc_service, SDL_Window* window, void* gl_context)
- : window(window), canvas_panel_service(doc_service), menu_bar(canvas_panel_service, doc_service, popup_manager), layers_panel(doc_service), doc_service(doc_service) {
+UI::UI(Application::Documents::DocumentService& doc_service,
+       Application::Tools::Toolbar& toolbar,
+       SDL_Window* window, void* gl_context)
+ : window(window), canvas_panel_service(doc_service),
+   menu_bar(canvas_panel_service, doc_service, popup_manager),
+   layers_panel(doc_service), doc_service(doc_service), toolbar(toolbar),
+   toolbar_panel(toolbar) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -105,9 +112,7 @@ void UI::render() {
     }
 
     // Render ui components
-    ImGui::Begin("Tools");
-    ImGui::Text("I start docked on the left.");
-    ImGui::End();
+    toolbar_panel.render();
     layers_panel.render();
 
     // Render canvas panels

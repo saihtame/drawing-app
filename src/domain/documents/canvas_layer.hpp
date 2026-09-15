@@ -15,9 +15,18 @@ public: // Ctors
 
 public:
     virtual void toggle_visiblity() { visible = !visible; }
+    /**
+     * @brief Fills the canvas with a solid color
+     *
+     * @param color Normalized color to fill with
+     */
     virtual void fill(glm::vec4 color) = 0;
 
 public: // Accessors
+    /**
+     * @brief Get the display name of the layer
+     *
+     */
     [[nodiscard]] const std::string& get_name() const noexcept { return layer_name; }
     [[nodiscard]] UUIDv4::UUID get_uuid() const noexcept { return uuid; }
     [[nodiscard]] bool is_visible() const noexcept { return visible; }

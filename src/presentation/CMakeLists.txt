@@ -7,6 +7,7 @@ add_library(${PRESENTATION_TARGET} STATIC
     canvas_panels/canvas_panel_service.cpp
     popups/popup_manager.cpp
     popups/new_file_popup.cpp
+    toolbar/toolbar_panel.cpp
 )
 
 target_include_directories(${PRESENTATION_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)
