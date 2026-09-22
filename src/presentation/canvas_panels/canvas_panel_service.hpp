@@ -15,6 +15,8 @@ public: // Panel management
     void add_panel(const UUIDv4::UUID& uuid, const std::shared_ptr<Domain::Documents::Document>& document);
     void remove_panel(const UUIDv4::UUID& uuid);
     [[nodiscard]] bool contains(const UUIDv4::UUID& uuid) const;
+    void render();
+    std::weak_ptr<CanvasPanel> get_visible_panel() const { return visible_panel; }
 
 public: // Accessors
     [[nodiscard]] std::weak_ptr<CanvasPanel> get_canvas_panel(const UUIDv4::UUID& uuid) const;
@@ -25,6 +27,7 @@ private: // Dependencies
 
 private: // Data
     std::unordered_map<UUIDv4::UUID, std::shared_ptr<CanvasPanel>> panels;
+    std::weak_ptr<CanvasPanel> visible_panel;
 };
 
 }

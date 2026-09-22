@@ -10,6 +10,11 @@ enum ToolType {
     TOOL_TYPE_BRUSH,
 };
 
+enum ToolUsage {
+    TOOL_USAGE_CLICK,
+    TOOL_USAGE_STROKE
+};
+
 class Tool {
 public: // Ctor
     Tool() {
@@ -21,14 +26,9 @@ public: // Ctor
 
 public: // Accessors
     UUIDv4::UUID get_uuid() const { return uuid; }
-    /**
-     * @brief Get the display name of the tool
-     */
     virtual std::string get_tool_name() const = 0;
-    /**
-     * @brief Get the type of the tool
-     */
     virtual ToolType get_tool_type() const = 0;
+    virtual ToolUsage get_tool_usage() const = 0;
 
 protected: // Data
     UUIDv4::UUID uuid;

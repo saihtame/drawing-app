@@ -8,6 +8,7 @@ add_library(${PRESENTATION_TARGET} STATIC
     popups/popup_manager.cpp
     popups/new_file_popup.cpp
     toolbar/toolbar_panel.cpp
+    input/input_manager.cpp
 )
 
 target_include_directories(${PRESENTATION_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/src)

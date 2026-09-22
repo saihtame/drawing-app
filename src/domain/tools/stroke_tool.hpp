@@ -6,6 +6,9 @@
 namespace Domain::Tools {
 
 class StrokeTool : public Tool {
+public: // Tool implementation
+    ToolUsage get_tool_usage() const { return TOOL_USAGE_STROKE; };
+
 public: // Operations
     /**
      * @brief Start a stroke with the tool.

@@ -6,6 +6,7 @@
 #include "popups/popup_manager.hpp"
 #include "canvas_panels/canvas_panel_service.hpp"
 #include "presentation/editor_runtime.hpp"
+#include "presentation/input/input_manager.hpp"
 #include "presentation/layers_panel.hpp"
 #include "presentation/toolbar/toolbar_panel.hpp"
 #include <glm/vec4.hpp>
@@ -32,7 +33,7 @@ private:
        SDL_Window* window, void* gl_context);
 
 public:
-    bool process_event(SDL_Event* event);
+    bool process_event(SDL_Event& event);
     void render();
 
 public: // DocumentServiceObserver implementation
@@ -42,10 +43,11 @@ private: // Dependencies
     Application::Documents::DocumentService& doc_service;
     Application::Tools::Toolbar& toolbar;
 
-private: // Members
+private: // Data
     bool first_render = true;
     SDL_Window* window;
     uint32_t canvas_dock_id = 0;
+    Input::InputManager input_manager;
     // UI Components:
     Popups::PopupManager popup_manager;
     CanvasPanels::CanvasPanelService canvas_panel_service;

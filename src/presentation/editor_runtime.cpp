@@ -108,13 +108,14 @@ inline void EditorRuntime::handle_input() {
             quit = true;
             continue;
         }
-        // Window resize
+        // Window resize event
         if (event.type == SDL_EVENT_WINDOW_RESIZED) {
             window_resized(event.window.data1, event.window.data2);
             continue;
         }
+
         // Allow UI to capture events
-        if (ui->process_event(&event))
+        if (ui->process_event(event))
             continue;
     }
 }

@@ -44,7 +44,7 @@ bool CanvasPanel::render() {
     if (document.expired())
         return false;
 
-    bool visible = ImGui::Begin(panel_name.c_str(), &open, flags);
+    visible = ImGui::Begin(panel_name.c_str(), &open, flags);
 
     // Check for first render
     if (ImGui::IsWindowAppearing()) {
@@ -61,11 +61,11 @@ bool CanvasPanel::render() {
             doc_service.set_active_document(document_locked);
 
             // Render document canvas
-            auto imgui_pos = ImGui::GetCursorScreenPos();
-            auto imgui_size = ImGui::GetContentRegionAvail();
+            pos = ImGui::GetCursorScreenPos();
+            size = ImGui::GetContentRegionAvail();
             glm::vec2 render_position = {
-                imgui_pos.x + imgui_size.x / 2.0f,
-                imgui_pos.y + imgui_size.y / 2.0f
+                pos.x + size.x / 2.0f,
+                pos.y + size.y / 2.0f
             };
             auto canvas = document_locked->get_canvas();
             if (auto canvas_locked = canvas.lock()) {

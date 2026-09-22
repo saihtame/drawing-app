@@ -14,9 +14,12 @@ public: // ctors
 private: // Dependencies
     Application::Documents::DocumentService& doc_service;
 
-public:
+public: // Accessors
     [[nodiscard]] bool render();
     const std::string& get_panel_name() const;
+    bool is_visible() const { return visible; }
+    ImVec2 get_size() const { return size; }
+    ImVec2 get_pos() const { return pos; }
 
 public:
     void request_fit_to_screen() { fit_to_screen_pending = true; }
@@ -26,6 +29,9 @@ private:
     std::string panel_name = "";
     int panel_no;
     bool open = true;
+    bool visible = false;
+    ImVec2 size;
+    ImVec2 pos;
 
 private: // Action flags
     bool fit_to_screen_pending = false;

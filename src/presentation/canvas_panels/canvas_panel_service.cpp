@@ -1,5 +1,6 @@
 #include "canvas_panel_service.hpp"
 #include <iostream>
+#include <memory>
 
 
 namespace Presentation::CanvasPanels {
@@ -43,6 +44,24 @@ std::weak_ptr<CanvasPanel> CanvasPanelService::get_canvas_panel(const UUIDv4::UU
 
 const std::unordered_map<UUIDv4::UUID, std::shared_ptr<CanvasPanel>>& CanvasPanelService::get_panels() const {
     return panels;
+}
+
+void CanvasPanelService::render() {
+    visible_panel = std::weak_ptr<CanvasPanel>();
+    // Render panels
+    std::vector<UUIDv4::UUID> uuids_to_remove;
+    for (const auto& [doc, panel]: panels) {
+        bool should_remove = panel->render();
+        if (should_remove) {
+            uuids_to_remove.push_back(doc);
+        } else if (panel->is_visible()) {
+            visible_panel = panel;
+        }
+    }
+    // Remove documents if they have been closed
+    for (const auto& uuid : uuids_to_remove) {
+        doc_service.close_document(uuid);
+    }
 }
 
 }

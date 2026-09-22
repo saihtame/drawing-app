@@ -23,7 +23,7 @@ UI::UI(Application::Documents::DocumentService& doc_service,
  : window(window), canvas_panel_service(doc_service),
    menu_bar(canvas_panel_service, doc_service, popup_manager),
    layers_panel(doc_service), doc_service(doc_service), toolbar(toolbar),
-   toolbar_panel(toolbar) {
+   toolbar_panel(toolbar), input_manager(doc_service, toolbar, canvas_panel_service) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -54,8 +54,13 @@ UI::~UI() {
     doc_service.deregister_observer(weak_from_this());
 }
 
-bool UI::process_event(SDL_Event* event) {
-    ImGui_ImplSDL3_ProcessEvent(event);
+bool UI::process_event(SDL_Event& event) {
+    // Capture input events related to editing the canvas
+    // This is done before ImGUI to prevent ImGUI from capturing all events.
+    if (input_manager.process_event(event))
+        return true;
+
+    ImGui_ImplSDL3_ProcessEvent(&event);
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     return (io.WantCaptureKeyboard || io.WantCaptureMouse);
 }
@@ -114,19 +119,7 @@ void UI::render() {
     // Render ui components
     toolbar_panel.render();
     layers_panel.render();
-
-    // Render canvas panels
-    std::vector<UUIDv4::UUID> uuids_to_remove;
-    for (const auto& doc_panel_pair : canvas_panel_service.get_panels()) {
-        bool should_remove = doc_panel_pair.second->render();
-        if (should_remove) {
-            uuids_to_remove.push_back(doc_panel_pair.first);
-        }
-    }
-    // Remove documents from DocumentService, if they have been closed
-    for (const auto& uuid : uuids_to_remove) {
-        doc_service.close_document(uuid);
-    }
+    canvas_panel_service.render();
 
     // Render frame
     ImGui::Render();
@@ -137,8 +130,8 @@ void UI::document_service_update() {
     // Get all loaded documents for doc service
     const auto& loaded_docs = doc_service.get_documents();
 
+    // Check that we have a canvas window for each loaded document
     for (const auto& [uuid, document] : loaded_docs) {
-        // Check that we have a canvas window for each loaded document
         if (!canvas_panel_service.contains(uuid)) {
             canvas_panel_service.add_panel(uuid, document);
             // Dock the new panel into the central canvas area
@@ -148,7 +141,7 @@ void UI::document_service_update() {
         }
     }
 
-    // Check if we have canvas for non loaded document
+    // Check if we have canvas for non loaded document that needs to be removed
     std::vector<UUIDv4::UUID> uuids_to_remove;
     for (const auto& doc_panel_pair : canvas_panel_service.get_panels()) {
         if (!loaded_docs.contains(doc_panel_pair.first)) {

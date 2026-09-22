@@ -6,6 +6,11 @@
 
 namespace Application::Documents {
 
+/**
+ * @class DocumentSerializer
+ * @brief Defines an interface to serialize/deserialize documents
+ *
+ */
 class DocumentSerializer {
 public:
     ~DocumentSerializer() = default;
