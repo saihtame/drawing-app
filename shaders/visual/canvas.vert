@@ -6,7 +6,10 @@ out vec2 vUv;
 
 uniform mat4 transform;
 uniform mat4 projection;
-uniform sampler2D texture;
+// NB: no sampler declared here. An unused sampler2D defaults to texture unit 0,
+// which is where canvas.frag's canvasTexture lives. Keeping a second sampler in
+// this program risks the linker reporting two samplers of different types
+// sharing one texture unit.
 
 void main()
 {

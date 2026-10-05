@@ -52,7 +52,7 @@ drawing-app/
 
 ### Domain Layer (`src/domain/`)
 
-Pure business logic, no dependencies on other layers or external libraries (except uuid_v4).
+Pure business logic, no dependencies on other layers or framework libraries (only `uuid_v4` and the header-only `glm`, which is used by `Canvas`, `CanvasLayer` and `StrokeTool`).
 
 **Documents** (`domain/documents/`):
 - `Document`: Represents a drawing document. Owns a Canvas via factory, has UUID and optional save path.
@@ -63,6 +63,8 @@ Pure business logic, no dependencies on other layers or external libraries (exce
 **Tools** (`domain/tools/`):
 - `Tool` (abstract base): Base tool with UUID, name, type (PAN, BRUSH), usage (CLICK, STROKE).
 - `StrokeTool`: Extends Tool for drag-based operations with `start_stroke()`, `continue_stroke()`, `stop_stroke()`.
+- `BrushTool`: Extends StrokeTool. Owns per-tool brush configuration (`BrushSettings`) and clamps it; subclasses supply the GPU-backed behaviour. Configuration lives in the domain because it is entity state, following the same pattern as `CanvasLayer::visible`/`fill` and `Canvas::set_zoom`.
+- `BrushSettings`: Plain value struct (size, hardness, opacity, color) with defaults.
 
 ### Application Layer (`src/application/`)
 
@@ -81,8 +83,8 @@ Use cases and port interfaces. Depends on Domain.
 Concrete implementations of Application ports and GPU functionality. Depends on Application and Domain.
 
 **Canvas** (GPU implementation):
-- `GpuCanvas`: Concrete Canvas using OpenGL textures. Composites all layers via compute shader into a final texture, renders via material/plane.
-- `GpuCanvasLayer`: Concrete CanvasLayer backed by GPU texture (RGBA16F).
+- `GpuCanvas`: Concrete Canvas using OpenGL textures. Composites all layers via compute shader into a final texture, renders via material/plane. Also owns which layer is selected.
+- `GpuCanvasLayer`: Concrete CanvasLayer backed by **two** GPU textures (RGBA16F) and a front/back index, so an edit can read and write within one compute dispatch. See "Layer Double Buffering".
 - `GpuCanvasFactory`: Creates GpuCanvas instances.
 
 **Rendering** (OpenGL utilities):
@@ -94,13 +96,14 @@ Concrete implementations of Application ports and GPU functionality. Depends on 
 
 **Compute**:
 - `TextureCompositor`: Compute shader-based layer compositor. Uses `texture_compositor.comp` with up to 32 source textures per pass, implements premultiplied alpha "over" blending. Dispatches workgroups of 16x16.
+- `BrushPainter`: Wraps `brush_painter.comp`, painting a capsule (constant width segment) between two canvas-space points with hardness falloff and premultiplied-alpha "over" compositing. Reads one texture and writes another, so it must be given the layer's two buffers. Must be constructed lazily (first stroke, not at startup) because it owns a GL shader program.
 
 **IO**:
 - `DocumentFileSerializer`: Concrete implementation of DocumentSerializer. Currently stub implementation (load/save are not fully implemented - returns empty doc or does nothing).
 
 **Tools**:
 - `PanTool`: Stroke tool implementation for panning (currently just logs).
-- `BrushTool`: Stroke tool implementation for drawing (currently just logs).
+- `BrushTool`: Derives from `Domain::Tools::BrushTool`, adding a lazily-created `BrushPainter`. Holds the painter behind a forward declaration + `unique_ptr` so `<glad/gl.h>` never reaches `main.cpp`.
 
 ### Presentation Layer (`src/presentation/`)
 
@@ -123,7 +126,7 @@ ImGui UI and runtime. Handles windowing, input, and rendering the editor interfa
 - `PopupManager`, `NewFilePopup`: Dialog management.
 
 **Toolbar**:
-- `ToolbarPanel`: UI for selecting active tool.
+- `ToolbarPanel`: UI for selecting the active tool, plus a settings section rendered for whichever tool exposes options (currently the brush).
 
 ## Build & Development
 
@@ -150,7 +153,7 @@ Post-build steps copy `shaders/` and `assets/` to `build/bin/`.
 - SDL3 built as static library (`SDL_SHARED OFF`, `SDL_STATIC ON`)
 - OpenGL preference set to GLVND
 - `CMAKE_EXPORT_COMPILE_COMMANDS ON` for LSP/IDE integration
-- Compile warnings enabled (`-Wall -Wextra -Wpedantic`) for GCC/Clang
+- Compile warnings enabled (`-Wall -Wextra -Wpedantic`) for GCC/Clang - but only on the executable target, not on the layer libraries
 
 ## Key Design Patterns
 
@@ -180,6 +183,32 @@ The compute shader (`texture_compositor.comp`) composites layers using premultip
 1. GpuCanvas collects all layer textures
 2. Calls `compositor.composit()` to blend into final texture
 3. Renders final texture to screen via `Material` + `Plane` with transform/projection
+
+### OpenGL Include Path Invariant
+`glad` is linked `PRIVATE` by the `drawing_app_infrastructure` and `drawing_app_presentation` targets. That is only sound as long as **no header reachable from `main.cpp` includes `<glad/gl.h>`**. Several infrastructure headers do include it transitively (`shader.hpp`, `texture.hpp`, `material.hpp`, `plane.hpp`, `texture_compositor.hpp`, `brush_painter.hpp`), but they are kept out of `main.cpp`'s include tree by keeping the public headers `main.cpp` actually includes thin:
+
+- `gpu_canvas_factory.hpp` includes only the domain `canvas_factory.hpp`; `create_canvas()` returns the abstract `shared_ptr<Canvas>`, so `main.cpp` never names `GpuCanvas`.
+- `tools/brush_tool.hpp` forward-declares `Compute::BrushPainter` and holds it in a `std::unique_ptr` with an out-of-line destructor, confining the GL-heavy `brush_painter.hpp` to `brush_tool.cpp`.
+
+Violating this does not fail inside the library - the library builds fine and the failure surfaces in `main.cpp` as `fatal error: glad/gl.h: No such file or directory`, which points several files away from the actual mistake. When adding an infrastructure member that owns GL resources, hold it behind a forward declaration.
+
+### OpenGL Context Ordering
+`gladLoadGL` is called from `EditorRuntime::initialize_window()`, which runs inside `EditorRuntime::run()`. Until then every glad dispatch pointer is `NULL`, so **any GL call segfaults at address 0**. `main()` constructs the tools - and therefore everything they own - before calling `run()`, so GPU-owning types must be created lazily, on first use inside the event loop. `TextureCompositor` gets away with eager construction only because it is owned by `GpuCanvas`, which is created lazily on the first `new_document()` call; that is an accident of ownership, not a safety guarantee.
+
+### Layer Double Buffering
+`GpuCanvasLayer` owns two `Rendering::Texture` buffers and an index, because GL cannot bind one texture as both a read and a write image in a single dispatch (there is no `GL_READ_WRITE` for image units; binding one texture to two roles is a feedback loop with undefined results). The convention for anything that edits layer pixels:
+
+1. Read from `layer->get_read_texture()` (the front buffer)
+2. Write into `layer->get_write_texture()` (the back buffer)
+3. Issue a memory barrier
+4. Call `layer->switch_buffers()` to promote the back buffer
+
+Skipping step 4 leaves the edit invisible until the next one. `fill()` must write **both** buffers, or the stale one resurfaces on the first switch. `get_texture()` returns the front buffer, which is what `GpuCanvas::render()` composites. Switching is an index flip rather than a swap because `Texture` owns a GL name and has a user-declared destructor, so it is neither copyable nor movable in practice.
+
+`BrushPainter::paint()` deliberately takes two `Rendering::Texture&` rather than a `GpuCanvasLayer&`, so `infrastructure/compute` does not have to depend on `infrastructure/canvas`. The cost is that callers must remember steps 3 and 4.
+
+### Layer Selection
+`GpuCanvas::add_layer()` selects the layer it creates, so a new document's initial white layer (`DocumentService::new_document`) is selected immediately and there is always a paint target. Clicking a row in `LayersPanel` calls `set_selected_layer`. Tools resolve the surface once at `start_stroke`, since the selection cannot change mid-stroke.
 
 ### Texture Format
 All GPU textures use `GL_RGBA16F` for HDR-like precision in the internal format.
@@ -212,7 +241,7 @@ All GPU textures use `GL_RGBA16F` for HDR-like precision in the internal format.
 ## Common Tasks for Agents
 
 When working with this codebase:
-1. Respect Clean Architecture boundaries - don't add Infrastructure deps in Domain; Domain should have zero external framework deps (except uuid_v4 as used)
+1. Respect Clean Architecture boundaries - don't add Infrastructure deps in Domain; Domain should stay free of external framework deps (`uuid_v4` and `glm` are the only permitted ones)
 2. Use existing patterns (observer, factory, interfaces, DI via constructors)
 3. For GPU operations, follow patterns in `infrastructure/rendering/` and `infrastructure/compute/` (RAII, texture lifecycle)
 4. For UI changes, work within ImGui docking paradigm; avoid breaking dockspace layout
@@ -229,12 +258,14 @@ When working with this codebase:
 |---|---|
 | Entry point | `src/main.cpp` |
 | Domain interfaces | `src/domain/documents/*.hpp`, `src/domain/tools/*.hpp` |
+| Tools | `src/domain/tools/*.hpp,cpp`, `src/infrastructure/tools/*.hpp,cpp` |
 | App services | `src/application/documents/document_service.*`, `src/application/tools/toolbar.*` |
-| GPU canvas | `src/infrastructure/canvas/gpu_canvas.*` |
+| GPU canvas | `src/infrastructure/canvas/gpu_canvas.*`, `gpu_canvas_layer.*` |
 | Compositor | `src/infrastructure/compute/texture_compositor.*` |
+| Brush painter | `src/infrastructure/compute/brush_painter.*` |
 | Rendering | `src/infrastructure/rendering/*.hpp,cpp` |
 | UI root | `src/presentation/ui.*`, `src/presentation/editor_runtime.*` |
 | Canvas UI | `src/presentation/canvas_panels/*.hpp,cpp` |
-| Shaders | `shaders/compute/texture_compositor.comp`, `shaders/visual/canvas.*` |
+| Shaders | `shaders/compute/texture_compositor.comp`, `shaders/compute/brush_painter.comp`, `shaders/visual/canvas.*` |
 | Build config | `CMakeLists.txt`, `src/*/CMakeLists.txt`, `cmake/imgui.cmake` |
 | External deps | `external/` (submodules) |

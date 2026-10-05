@@ -32,13 +32,17 @@ void TextureCompositor::composit(glm::uvec2 size, Rendering::Texture& target, co
     // Bind sources
     glBindTextures(1, sources_size, sources.data());
 
-    // Dispatch shader program
+    // Dispatch, rounding up so that the edges of the canvas are covered too
     glm::uvec2 dispatches = {
-        size.x / (WORK_GROUP_SIZE.x + 1),
-        size.y / (WORK_GROUP_SIZE.y + 1)
+        (size.x + WORK_GROUP_SIZE.x - 1u) / WORK_GROUP_SIZE.x,
+        (size.y + WORK_GROUP_SIZE.y - 1u) / WORK_GROUP_SIZE.y,
     };
     glDispatchCompute(dispatches.x, dispatches.y, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    // The target is written through an image unit but read back by Material as
+    // a sampler, so the barrier has to cover image writes AND texture fetches.
+    // Without GL_TEXTURE_FETCH_BARRIER_BIT the canvas texture stays stale and
+    // canvas.frag discards every pixel.
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 }
 
 }

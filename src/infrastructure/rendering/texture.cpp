@@ -5,7 +5,7 @@
 
 namespace Infrastructure::Rendering {
 
-Texture::Texture(glm::uvec2 size, glm::vec4 fill_color) {
+Texture::Texture(glm::uvec2 size, glm::vec4 fill_color) : size(size) {
     // Generate texture on GPU
     glCreateTextures(GL_TEXTURE_2D, 1, &texture_id);
     // Set texture size

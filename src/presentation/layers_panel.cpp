@@ -23,6 +23,9 @@ void LayersPanel::render() {
             // Layer line items
             int layer_count = canvas->get_layer_count();
             int layer_to_remove = -1;
+            // Currently selected layer, used to highlight the active row and as
+            // the surface that drawing tools paint on
+            auto selected_layer = canvas->get_selected_layer().lock();
             for (int i = 0; i < layer_count; i++) {
                 auto layer = canvas->get_layer(i);
                 if (auto layer_locked = layer.lock()) {
@@ -44,8 +47,12 @@ void LayersPanel::render() {
                     const float spacing = ImGui::GetStyle().ItemSpacing.x;
                     const float delete_btn_width = ImGui::GetFrameHeight();
                     const float name_width = ImGui::GetContentRegionAvail().x - delete_btn_width - spacing;
-                    ImGui::Selectable(layer_locked->get_name().c_str(), false,
-                        ImGuiSelectableFlags_None, ImVec2(name_width, 0.0f));
+                    bool is_selected = selected_layer != nullptr
+                        && selected_layer->get_uuid() == layer_locked->get_uuid();
+                    if (ImGui::Selectable(layer_locked->get_name().c_str(), is_selected,
+                        ImGuiSelectableFlags_None, ImVec2(name_width, 0.0f))) {
+                        canvas->set_selected_layer(layer_locked->get_uuid());
+                    }
 
                     // Drag source: allows dragging this layer row
                     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {

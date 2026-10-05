@@ -7,6 +7,7 @@
 #include <glm/common.hpp>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
 
 namespace Infrastructure::Canvas {
@@ -57,6 +58,10 @@ std::weak_ptr<Domain::Documents::CanvasLayer> GpuCanvas::add_layer() {
     // Add to list
     layers.push_back(layer);
 
+    // A newly added layer becomes the active one, so there is always a layer
+    // that drawing tools can paint on
+    selected_layer = layer;
+
     return layer;
 }
 
@@ -66,6 +71,9 @@ void GpuCanvas::remove_layer(int ind) {
         throw std::invalid_argument("Layer index invalid: " + std::to_string(ind));
 
     auto it = std::next(layers.begin(), ind);
+    // Drop the selection if it referred to the layer being removed
+    if (selected_layer.lock() == *it)
+        selected_layer.reset();
     layers.erase(it);
 }
 
@@ -94,7 +102,7 @@ std::weak_ptr<Domain::Documents::CanvasLayer> GpuCanvas::get_selected_layer() co
 }
 
 void GpuCanvas::set_selected_layer(UUIDv4::UUID layer_id) {
-    auto layer = get_gpu_layer(layer_id);
+    selected_layer = get_gpu_layer(layer_id);
 }
 
 void GpuCanvas::set_zoom(float value) {

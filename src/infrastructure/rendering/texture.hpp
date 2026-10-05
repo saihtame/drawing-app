@@ -13,10 +13,12 @@ public: // Ctors
 
 public:
     uint32_t get_id() const { return texture_id; }
+    [[nodiscard]] glm::uvec2 get_size() const noexcept { return size; }
     void fill(glm::vec4 color);
 
 private: // Data
     uint32_t texture_id = 0;
+    glm::uvec2 size = {0, 0};
 };
 
 }

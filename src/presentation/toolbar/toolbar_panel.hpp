@@ -1,5 +1,6 @@
 #pragma once
 #include "application/tools/toolbar.hpp"
+#include "domain/tools/brush_tool.hpp"
 #include "domain/tools/tool.hpp"
 #include "imgui.h"
 #include <unordered_map>
@@ -19,6 +20,7 @@ private: // Helpers
     inline void load_icons();
     inline uint32_t load_texture(const std::string& path);
     inline ImVec2 render_tool_button(const std::shared_ptr<Domain::Tools::Tool> tool);
+    inline void render_active_tool_options();
 
 private: // Data
     std::unordered_map<Domain::Tools::ToolType, int> tool_icons;

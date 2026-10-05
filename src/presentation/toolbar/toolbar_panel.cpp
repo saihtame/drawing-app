@@ -28,6 +28,8 @@ void ToolbarPanel::render() {
         width_left -= size.x;
     }
 
+    render_active_tool_options();
+
     ImGui::End();
 }
 
@@ -107,6 +109,46 @@ inline ImVec2 ToolbarPanel::render_tool_button(const std::shared_ptr<Domain::Too
         toolbar.set_active_tool(tool);
 
     return total_size;
+}
+
+inline void ToolbarPanel::render_active_tool_options() {
+    // Only the brush exposes settings. Matching on the domain type keeps this
+    // panel free of any knowledge of the infrastructure implementation.
+    const auto brush = std::dynamic_pointer_cast<Domain::Tools::BrushTool>(toolbar.get_active_tool());
+    if (brush == nullptr)
+        return;
+
+    ImGui::NewLine();
+    ImGui::Separator();
+    ImGui::TextUnformatted("Brush");
+
+    // Edit through locals and commit via the setters, so that clamping stays
+    // the domain's job instead of being duplicated by the widget ranges.
+    // Widget bounds come from the domain constants, which are the same ones
+    // the setters clamp against, so the two cannot drift apart.
+    const auto& settings = brush->get_settings();
+
+    float size = settings.size;
+    if (ImGui::SliderFloat("Size##brush", &size,
+                           Domain::Tools::BrushTool::MIN_SIZE,
+                           Domain::Tools::BrushTool::MAX_SIZE, "%.0f px"))
+        brush->set_size(size);
+
+    float hardness = settings.hardness;
+    if (ImGui::SliderFloat("Hardness##brush", &hardness,
+                           Domain::Tools::BrushTool::MIN_HARDNESS,
+                           Domain::Tools::BrushTool::MAX_HARDNESS, "%.2f"))
+        brush->set_hardness(hardness);
+
+    float opacity = settings.opacity;
+    if (ImGui::SliderFloat("Opacity##brush", &opacity,
+                           Domain::Tools::BrushTool::MIN_OPACITY,
+                           Domain::Tools::BrushTool::MAX_OPACITY, "%.2f"))
+        brush->set_opacity(opacity);
+
+    float color[4] = {settings.color.x, settings.color.y, settings.color.z, settings.color.w};
+    if (ImGui::ColorEdit4("Color##brush", color))
+        brush->set_color({color[0], color[1], color[2], color[3]});
 }
 
 }

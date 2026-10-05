@@ -1,4 +1,5 @@
 #pragma once
+#include "domain/tools/brush_settings.hpp"
 #include "infrastructure/rendering/shader_program.hpp"
 #include "infrastructure/rendering/texture.hpp"
 #include <filesystem>
@@ -13,7 +14,18 @@ public: // Ctors
     ~BrushPainter() = default;
 
 public: // Usage
-    void paint(glm::vec2 start, glm::vec2 end, Rendering::Texture& target, float radius);
+    /**
+     * @brief Paints the stroke segment between two canvas space positions.
+     *
+     * Reads from source and writes to target, which must be two different
+     * textures of equal size. GpuCanvasLayer is double buffered for exactly
+     * this reason; the caller is responsible for promoting target afterwards,
+     * with GpuCanvasLayer::switch_buffers().
+     *
+     * @param settings Brush configuration, already clamped by Domain::Tools::BrushTool.
+     */
+    void paint(glm::vec2 start, glm::vec2 end, const Rendering::Texture& source,
+               Rendering::Texture& target, const Domain::Tools::BrushSettings& settings);
 
 private: // Data
     Rendering::ShaderProgram shader_program;

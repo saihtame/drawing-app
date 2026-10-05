@@ -1,17 +1,58 @@
 #version 460 core
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-struct BrushOptions {
-    float radius;
-};
-
+// Layers are double buffered (see GpuCanvasLayer): an edit reads the front
+// buffer and writes the back one, because GL cannot bind a single texture as
+// both read and write within one dispatch.
 layout(binding = 0, rgba16f) uniform writeonly image2D target_out;
-layout(binding = 1, rgba16f) uniform readonly image2D target_in;
+layout(binding = 1, rgba16f) uniform readonly  image2D target_in;
 
-layout(location = 0) uniform BrushOptions radius;
-layout(location = 1) uniform vec2 start;
-layout(location = 2) uniform vec2 end;
+layout(location = 0) uniform float radius;
+layout(location = 1) uniform float hardness;
+layout(location = 2) uniform float opacity;
+layout(location = 3) uniform vec4  color;
+layout(location = 4) uniform vec2  start;
+layout(location = 5) uniform vec2  end;
 
+// Shortest distance from p to the segment a-b. A degenerate segment (a == b)
+// yields the distance to that point, which paints a dot.
+float distance_to_segment(vec2 p, vec2 a, vec2 b) {
+    vec2 pa = p - a;
+    vec2 ba = b - a;
+    float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
+    return length(pa - ba * h);
+}
 
 void main() {
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size  = imageSize(target_out);
+
+    if (pixel.x >= size.x || pixel.y >= size.y) {
+        return;
+    }
+
+    vec2 center = vec2(pixel) + 0.5;
+    float dist  = distance_to_segment(center, start, end);
+    float t     = clamp(1.0 - dist / max(radius, 1e-6), 0.0, 1.0);
+    // hardness 1 gives a hard linear edge, hardness 0 a soft smoothstep falloff
+    float coverage = mix(smoothstep(0.0, 1.0, t), t, hardness);
+
+    vec4 dst = imageLoad(target_in, pixel);
+
+    if (coverage <= 0.0) {
+        // Copy through untouched so the back buffer is written in full and
+        // never carries stale content into the next front buffer.
+        imageStore(target_out, pixel, dst);
+        return;
+    }
+
+    // Layer textures hold premultiplied alpha: texture_compositor.comp reads
+    // them that way, so the brush composites in the same space.
+    float alpha = coverage * opacity * color.a;
+    vec3  src   = color.rgb * alpha;
+
+    vec3  out_rgb = src + dst.rgb * (1.0 - alpha);
+    float out_a   = alpha + dst.a   * (1.0 - alpha);
+
+    imageStore(target_out, pixel, vec4(out_rgb, out_a));
 }
