@@ -112,19 +112,12 @@ void GpuCanvas::fit_screen(glm::vec2 screen_size) {
 }
 
 glm::vec2 GpuCanvas::get_canvas_pos(glm::vec2 screen_pos) const {
-    // Calculate the screen size of the canvas
     float zoom = material.get_zoom();
-    glm::vec2 screen_size = {size.x * zoom, size.y * zoom};
-
-    std::cout << "Screen Size: " << screen_size.x << ", " << screen_size.y << std::endl;
-
-    // Calculate canvas position
-    glm::vec2 canvas_pos = {
-        0,
-        0
-    };
-
-    return canvas_pos;
+    glm::vec2 canvas_center = this->screen_pos;
+    glm::vec2 canvas_size_screen = glm::vec2(size) * zoom;
+    glm::vec2 canvas_top_left = canvas_center - canvas_size_screen * 0.5f;
+    glm::vec2 offset = screen_pos - canvas_top_left;
+    return offset / zoom;
 }
 
 std::weak_ptr<GpuCanvasLayer> GpuCanvas::get_gpu_layer(UUIDv4::UUID uuid) {
