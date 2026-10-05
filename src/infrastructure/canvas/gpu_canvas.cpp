@@ -32,6 +32,8 @@ void GpuCanvas::render(glm::vec2 position) {
 
     material.use(position, texture.get_id());
     plane.render();
+
+    screen_pos = position;
 }
 
 int GpuCanvas::get_layer_count() const noexcept {
@@ -100,14 +102,33 @@ void GpuCanvas::set_zoom(float value) {
 }
 
 void GpuCanvas::fit_screen(glm::vec2 screen_size) {
-    float max_width =  screen_size.x / size.x;
-    float max_height = screen_size.y / size.y;
+    // Find the smallest zoom value we can fit
+    float min_width =  screen_size.x / size.x;
+    float min_height = screen_size.y / size.y;
+    float new_zoom = glm::min(min_width, min_height);
 
-    float scale = glm::min(max_width, max_height);
-    material.set_zoom(scale);
+    // Apply the zoom value to our material
+    material.set_zoom(new_zoom);
+}
+
+glm::vec2 GpuCanvas::get_canvas_pos(glm::vec2 screen_pos) const {
+    // Calculate the screen size of the canvas
+    float zoom = material.get_zoom();
+    glm::vec2 screen_size = {size.x * zoom, size.y * zoom};
+
+    std::cout << "Screen Size: " << screen_size.x << ", " << screen_size.y << std::endl;
+
+    // Calculate canvas position
+    glm::vec2 canvas_pos = {
+        0,
+        0
+    };
+
+    return canvas_pos;
 }
 
 std::weak_ptr<GpuCanvasLayer> GpuCanvas::get_gpu_layer(UUIDv4::UUID uuid) {
+    // Look for layer with matching id
     for (const auto& layer : layers) {
         if (layer->get_uuid() == uuid)
             return layer;

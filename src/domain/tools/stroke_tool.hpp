@@ -13,19 +13,20 @@ public: // Operations
     /**
      * @brief Start a stroke with the tool.
      *
-     * @param position The position on the canvas to start the stroke
+     * @param Start position in canvas space
      */
     virtual void start_stroke(glm::vec2 position);
     /**
      * @brief Continues a stroke with the tool.
      * Must be called between start_stroke and stop_stroke.
      *
-     * @param Position on the canvas where the stroke will be continued to.
+     * @param Position to continue the drag to in canvas space
      */
     virtual void continue_stroke(glm::vec2 position);
     /**
      * @brief Stops the stroke.
      *
+     * @param Last position of the drag in canvas space
      */
     virtual void stop_stroke(glm::vec2 position);
 

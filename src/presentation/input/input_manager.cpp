@@ -1,7 +1,10 @@
 #include "input_manager.hpp"
 #include "SDL3/SDL_events.h"
+#include "domain/tools/stroke_tool.hpp"
+#include "domain/tools/tool.hpp"
 #include "imgui.h"
 #include <iostream>
+#include <stdexcept>
 
 
 namespace Presentation::Input {
@@ -57,25 +60,89 @@ inline bool InputManager::mouse_inside_canvas(ImVec2 canvas_size, ImVec2 canvas_
            mouse_y <= canvas_pos.y + canvas_size.y;
 }
 
+inline glm::vec2 InputManager::get_canvas_pos(SDL_Event& mouse_event) {
+    if (active_drag_canvas == nullptr) return {0, 0};
+
+    glm::vec2 screen_pos = {mouse_event.motion.x, mouse_event.motion.y};
+    return active_drag_canvas->get_canvas_pos(screen_pos);
+}
+
 inline bool InputManager::on_mouse_button_down(SDL_Event& event) {
+    // Get the active tool
+    auto tool = toolbar.get_active_tool();
+    if (tool == nullptr)
+        return false;
+
+    // Check tool usage type
+    Domain::Tools::ToolUsage usage_type = tool->get_tool_usage();
+    switch (usage_type) {
+        case Domain::Tools::TOOL_USAGE_CLICK:
+            return start_tool_click(event, tool);
+        case Domain::Tools::TOOL_USAGE_STROKE:
+            return start_tool_stroke(event, tool);
+        default:
+            std::cerr << "Unknown tool usage type" << std::endl;
+            return false;
+    }
+}
+
+inline bool InputManager::start_tool_stroke(SDL_Event& event, std::shared_ptr<Domain::Tools::Tool>& tool) {
+    // Cast tool to stroke tool
+    const auto stroke_tool = dynamic_pointer_cast<Domain::Tools::StrokeTool>(tool);
+    if (stroke_tool == nullptr) {
+        std::cerr << "Failed to cast tool to stroke tool." << std::endl;
+        return false;
+    }
+
+    // Try to get a canvas to operate on
+    auto active_document = doc_service.get_active_document();
+    if (auto active_document_locked = active_document.lock()) {
+        auto active_drag_canvas_weak = active_document_locked->get_canvas();
+        if (auto active_drag_canvas_locked = active_drag_canvas_weak.lock()) {
+            // Cache the active canvas
+            active_drag_canvas = active_drag_canvas_locked;
+        } else {
+            return false;
+        }
+    } else {
+        // No active document at the moment
+        return false;
+    }
+
+    // Get mouse pos
+    glm::vec2 canvas_pos = get_canvas_pos(event);
+
+    stroke_tool->start_stroke(canvas_pos);
+
+    // Stark stroke
     dragging = true;
-    std::cout << "Mouse click!" << std::endl;
-    return false;
+    active_drag_tool = stroke_tool;
+
+    return true;
+}
+
+
+inline bool InputManager::start_tool_click(SDL_Event& event, std::shared_ptr<Domain::Tools::Tool>& tool) {
+    throw std::runtime_error("Not implemented");
 }
 
 inline bool InputManager::on_mouse_button_up(SDL_Event& event) {
     if (!dragging)
         return false;
-    std::cout << "Mouse release!" << std::endl;
+
     dragging = false;
-    return false;
+    active_drag_tool->stop_stroke(get_canvas_pos(event));
+
+    return true;
 }
 
 inline bool InputManager::on_mouse_movement(SDL_Event& event) {
     if (!dragging)
         return false;
-    std::cout << "Mouse motion!" << std::endl;
-    return false;
+
+    active_drag_tool->continue_stroke(get_canvas_pos(event));
+
+    return true;
 }
 
 }

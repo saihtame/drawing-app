@@ -33,11 +33,13 @@ public: // Selected layer
 public: // Zoom
     void set_zoom(float value) override;
     void fit_screen(glm::vec2 screen_size) override;
+    glm::vec2 get_canvas_pos(glm::vec2 screen_pos) const override;
 
 private: // Helpers
     std::weak_ptr<GpuCanvasLayer> get_gpu_layer(UUIDv4::UUID uuid);
 
 private: // Data
+    glm::vec2 screen_pos;
     Rendering::Texture texture;
     Rendering::Material material;
     Rendering::Plane plane;

@@ -29,17 +29,19 @@ public: // Layer management
     virtual std::weak_ptr<CanvasLayer> get_selected_layer() const = 0;
     virtual void set_selected_layer(UUIDv4::UUID layer) = 0;
 
-public: // Zoom
+public: // Rendering
     /**
      * @brief Set the zoom level of the canvas when rendering.
-     *
      */
     virtual void set_zoom(float value) = 0;
     /**
      * @brief Changes the zoom level to fit the canvas within the screen size
-     *
      */
     virtual void fit_screen(glm::vec2 screen_size) = 0;
+    /**
+     * @brief Convert a position from screen space to canvas space
+     */
+    virtual glm::vec2 get_canvas_pos(glm::vec2 screen_pos) const = 0;
 
 protected: // Data
     glm::uvec2 size = {0.0, 0.0};

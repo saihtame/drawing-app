@@ -6,16 +6,19 @@ namespace Infrastructure::Tools {
 void PanTool::start_stroke(glm::vec2 position) {
     Domain::Tools::StrokeTool::start_stroke(position);
     std::cout << "PanTool stroke started" << std::endl;
+    std::cout << "Position: " << position.x << ", " << position.y << std::endl;
 }
 
 void PanTool::continue_stroke(glm::vec2 position) {
     Domain::Tools::StrokeTool::continue_stroke(position);
     std::cout << "PanTool stroke continued" << std::endl;
+    std::cout << "Position: " << position.x << ", " << position.y << std::endl;
 }
 
 void PanTool::stop_stroke(glm::vec2 position) {
     Domain::Tools::StrokeTool::stop_stroke(position);
     std::cout << "PanTool stroke stopped" << std::endl;
+    std::cout << "Position: " << position.x << ", " << position.y << std::endl;
 }
 
 }
