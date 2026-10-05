@@ -57,6 +57,11 @@ void ShaderProgram::set_uniform_int(std::string uniform_name, int32_t value) {
     glUniform1i(loc, value);
 }
 
+void ShaderProgram::set_uniform_float(std::string uniform_name, float value) {
+    unsigned int loc = get_uniform_location(uniform_name);
+    glUniform1f(loc, value);
+}
+
 inline unsigned int ShaderProgram::get_uniform_location(std::string uniform_name) {
     auto it = uniform_locations.find(uniform_name);
     if (it != uniform_locations.end())

@@ -21,6 +21,7 @@ public:
     void set_uniform_vec2(std::string uniform_name, glm::vec2 value);
     void set_uniform_vec4(std::string uniform_name, glm::vec4 value);
     void set_uniform_int(std::string uniform_name, int32_t value);
+    void set_uniform_float(std::string uniform_name, float value);
 
 private: // Helpers
     inline unsigned int get_uniform_location(std::string uniform_name);

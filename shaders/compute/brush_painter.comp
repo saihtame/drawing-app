@@ -1,0 +1,17 @@
+#version 460 core
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+struct BrushOptions {
+    float radius;
+};
+
+layout(binding = 0, rgba16f) uniform writeonly image2D target_out;
+layout(binding = 1, rgba16f) uniform readonly image2D target_in;
+
+layout(location = 0) uniform BrushOptions radius;
+layout(location = 1) uniform vec2 start;
+layout(location = 2) uniform vec2 end;
+
+
+void main() {
+}
