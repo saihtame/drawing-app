@@ -1,6 +1,5 @@
 #pragma once
 #include "application/tools/toolbar.hpp"
-#include "domain/tools/brush_tool.hpp"
 #include "domain/tools/tool.hpp"
 #include "imgui.h"
 #include <unordered_map>

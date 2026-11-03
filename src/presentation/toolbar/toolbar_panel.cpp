@@ -1,5 +1,6 @@
 #include "toolbar_panel.hpp"
 #include "SDL3/SDL_opengl.h"
+#include "domain/tools/brush_tool.hpp"
 #include "imgui.h"
 #include <stb_image.h>
 

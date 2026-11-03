@@ -57,6 +57,7 @@ private: // Data
 
 private: // Render methods
     inline void reset_layout(uint32_t dockspace_id, ImGuiViewport* viewport);
+    inline void update_canvas_hit_hole(uint32_t dockspace_id);
 
 private: // Setup methods
     inline void setup_style();

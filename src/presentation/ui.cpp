@@ -55,14 +55,33 @@ UI::~UI() {
 }
 
 bool UI::process_event(SDL_Event& event) {
-    // Capture input events related to editing the canvas
-    // This is done before ImGUI to prevent ImGUI from capturing all events.
-    if (input_manager.process_event(event))
+    // Always forward the event to ImGui first so its input state stays in sync,
+    // even when the event ends up handled by the InputManager.
+    // Note: the return value only tells whether the backend handled the event,
+    // not whether ImGui wants it, so it cannot be used for routing.
+    ImGui_ImplSDL3_ProcessEvent(&event);
+
+    // A stroke in progress owns the mouse until the button is released, so it
+    // keeps receiving motion/up events even when the cursor leaves the canvas.
+    if (input_manager.is_dragging())
+        return input_manager.process_event(event);
+
+    const bool is_mouse_event = event.type == SDL_EVENT_MOUSE_MOTION ||
+                                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+                                event.type == SDL_EVENT_MOUSE_BUTTON_UP ||
+                                event.type == SDL_EVENT_MOUSE_WHEEL;
+    const bool is_keyboard_event = event.type == SDL_EVENT_KEY_DOWN ||
+                                   event.type == SDL_EVENT_KEY_UP ||
+                                   event.type == SDL_EVENT_TEXT_INPUT ||
+                                   event.type == SDL_EVENT_TEXT_EDITING;
+
+    // ImGui gets first refusal on events aimed at its windows.
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    if ((is_mouse_event && io.WantCaptureMouse) ||
+        (is_keyboard_event && io.WantCaptureKeyboard))
         return true;
 
-    ImGui_ImplSDL3_ProcessEvent(&event);
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    return (io.WantCaptureKeyboard || io.WantCaptureMouse);
+    return input_manager.process_event(event);
 }
 
 void UI::render() {
@@ -121,6 +140,9 @@ void UI::render() {
     layers_panel.render();
     canvas_panel_service.render();
 
+    // Let mouse input fall through the dockspace host to the canvas below it.
+    update_canvas_hit_hole(dockspace_id);
+
     // Render frame
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -150,6 +172,62 @@ void UI::document_service_update() {
     }
     for (const auto& uuid : uuids_to_remove) {
         canvas_panel_service.remove_panel(uuid);
+    }
+}
+
+inline void UI::update_canvas_hit_hole(uint32_t dockspace_id) {
+    ImGuiDockNode* node = ImGui::DockBuilderGetNode(dockspace_id);
+    if (node == nullptr)
+        return;
+
+    // DockSpace() submits a child window ("<host>/DockSpace_XXXXXXXX") that
+    // hosts the dock node. That child is what actually gets hovered behind the
+    // canvas, and its parent spans the same area, so both need the hole.
+    ImGuiWindow* node_host = node->HostWindow;
+    if (node_host == nullptr)
+        return;
+
+    // Do not steal hover while a window is being dragged, otherwise dropping a
+    // panel back onto the canvas would stop working.
+    const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+    if (payload != nullptr && payload->IsDataType(IMGUI_PAYLOAD_TYPE_WINDOW))
+        return;
+
+    auto visible_panel = canvas_panel_service.get_visible_panel().lock();
+    if (visible_panel == nullptr || !visible_panel->is_visible())
+        return;
+
+    const ImVec2 pos = visible_panel->get_pos();
+    const ImVec2 size = visible_panel->get_size();
+    if (size.x <= 0.0f || size.y <= 0.0f)
+        return;
+
+    // Expand sideways and down over the window padding, but not up into the
+    // tab bar so tabs remain clickable.
+    const ImVec2 padding = ImGui::GetStyle().WindowPadding;
+    const ImVec2 hole_pos(pos.x - padding.x, pos.y);
+    const ImVec2 hole_size(size.x + padding.x * 2.0f, size.y + padding.y);
+
+    // ImGui only supports one hole per window, and PassthruCentralNode already
+    // registers one while the central node is empty. Only take it over when the
+    // mouse is actually over the canvas, e.g. after the canvas was moved out of
+    // the central node.
+    if (node_host->HitTestHoleSize.x != 0) {
+        const ImVec2 mouse = ImGui::GetIO().MousePos;
+        const bool mouse_over_canvas =
+            mouse.x >= hole_pos.x && mouse.x <= hole_pos.x + hole_size.x &&
+            mouse.y >= hole_pos.y && mouse.y <= hole_pos.y + hole_size.y;
+        if (!mouse_over_canvas)
+            return;
+    }
+
+    ImGuiWindow* targets[] = { node_host, node_host->ParentWindow };
+    for (ImGuiWindow* window : targets) {
+        if (window == nullptr)
+            continue;
+        if (window->HitTestHoleSize.x != 0)
+            window->HitTestHoleSize = ImVec2ih(0, 0);
+        ImGui::SetWindowHitTestHole(window, hole_pos, hole_size);
     }
 }
 

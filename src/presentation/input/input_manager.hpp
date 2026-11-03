@@ -21,6 +21,7 @@ public: // Ctors
 
 public:
     bool process_event(SDL_Event& event);
+    [[nodiscard]] bool is_dragging() const { return dragging; }
 
 private: // Dependencies
     Application::Documents::DocumentService& doc_service;

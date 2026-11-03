@@ -16,6 +16,17 @@ InputManager::InputManager(Application::Documents::DocumentService& doc_service,
 
 
 bool InputManager::process_event(SDL_Event& event) {
+    // Once a stroke starts the canvas owns the mouse until the button is
+    // released, so motion/up events keep reaching the tool even when the
+    // cursor leaves the canvas.
+    if (dragging) {
+        if (event.type == SDL_EVENT_MOUSE_MOTION)
+            return on_mouse_movement(event);
+        if (event.type == SDL_EVENT_MOUSE_BUTTON_UP && event.button.button == SDL_BUTTON_LEFT)
+            return on_mouse_button_up(event);
+        return false;
+    }
+
     // Ensure a visible canvas exists
     auto visible_canvas = canvas_panel_service.get_visible_panel();
     if (auto visible_canvas_locked = visible_canvas.lock()) {
@@ -103,7 +114,7 @@ inline bool InputManager::start_tool_stroke(SDL_Event& event, std::shared_ptr<Do
     }
 
     // Get mouse pos
-    glm::vec2 mouse_pos = {event.motion.x, event.motion.y};
+    glm::vec2 mouse_pos = {event.button.x, event.button.y};
 
     stroke_tool->start_stroke(mouse_pos);
 
@@ -124,7 +135,7 @@ inline bool InputManager::on_mouse_button_up(SDL_Event& event) {
         return false;
 
     dragging = false;
-    active_drag_tool->stop_stroke({event.motion.x, event.motion.y});
+    active_drag_tool->stop_stroke({event.button.x, event.button.y});
 
     return true;
 }
