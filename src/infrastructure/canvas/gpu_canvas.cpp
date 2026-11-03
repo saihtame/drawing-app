@@ -113,6 +113,9 @@ void GpuCanvas::set_zoom(float value) {
 }
 
 void GpuCanvas::fit_screen(glm::vec2 screen_size) {
+    // Remove rendering offset
+    set_rendering_offset({0.0, 0.0});
+
     // Find the smallest zoom value we can fit
     float min_width =  screen_size.x / size.x;
     float min_height = screen_size.y / size.y;
