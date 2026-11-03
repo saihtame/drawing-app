@@ -24,6 +24,7 @@ private: // File menu
 private: // View menu
     inline void fit_to_screen();
     inline void set_zoom(float value);
+    inline void center_canvas();
 
 private: // Dependencies
     CanvasPanels::CanvasPanelService& canvas_panel_service;

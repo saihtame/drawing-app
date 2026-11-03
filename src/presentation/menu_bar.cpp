@@ -51,6 +51,9 @@ void MenuBar::render() {
                     set_zoom(0.25);
                 ImGui::EndMenu();
             }
+            // Center canvas
+            if (ImGui::MenuItem("Center canvas", "", false, has_active_document))
+                center_canvas();
             ImGui::EndMenu();
         }
         /* View menu */
@@ -89,6 +92,15 @@ inline void MenuBar::set_zoom(float value) {
     if (auto document_locked = active_document.lock()) {
         if (auto canvas = document_locked->get_canvas().lock()) {
             canvas->set_zoom(value);
+        }
+    }
+}
+
+inline void MenuBar::center_canvas() {
+    auto active_document = doc_service.get_active_document();
+    if (auto document_locked = active_document.lock()) {
+        if (auto canvas = document_locked->get_canvas().lock()) {
+            canvas->set_rendering_offset({0.0, 0.0});
         }
     }
 }
