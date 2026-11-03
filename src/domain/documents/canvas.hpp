@@ -42,9 +42,12 @@ public: // Rendering
      * @brief Convert a position from screen space to canvas space
      */
     virtual glm::vec2 get_canvas_pos(glm::vec2 screen_pos) const = 0;
+    void set_rendering_offset(glm::vec2 value) { rendering_offset = value; };
+    glm::vec2 get_rendering_offset() const { return rendering_offset; }
 
 protected: // Data
     glm::uvec2 size = {0.0, 0.0};
+    glm::vec2 rendering_offset = {0.0, 0.0};
 };
 
 }

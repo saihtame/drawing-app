@@ -24,6 +24,7 @@ void GpuCanvas::render(glm::vec2 position) {
     // Disable alpha blending
     glDisable(GL_BLEND);
 
+    // Composit layers together
     std::vector<uint32_t> layer_tex_ids;
     layer_tex_ids.reserve(layers.size());
     for (const auto& layer : layers) {
@@ -31,10 +32,12 @@ void GpuCanvas::render(glm::vec2 position) {
     }
     compositor.composit(size, texture, layer_tex_ids);
 
-    material.use(position, texture.get_id());
-    plane.render();
+    // Update screen pos
+    screen_pos = position + rendering_offset;
 
-    screen_pos = position;
+    // Render the canvas with the updated screen pos
+    material.use(screen_pos, texture.get_id());
+    plane.render();
 }
 
 int GpuCanvas::get_layer_count() const noexcept {
