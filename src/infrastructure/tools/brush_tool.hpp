@@ -33,6 +33,7 @@ public: // Tool implementation
 private: // Helpers
     std::weak_ptr<Canvas::GpuCanvasLayer> resolve_target_layer();
     void paint_segment(glm::vec2 from, glm::vec2 to);
+    glm::vec2 get_canvas_pos(glm::vec2 screen_pos) const;
 
 private: // Data
     std::unique_ptr<Compute::BrushPainter> brush_painter;

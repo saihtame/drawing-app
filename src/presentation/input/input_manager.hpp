@@ -34,7 +34,6 @@ private: // Data
 
 private: // Helpers
     inline bool mouse_inside_canvas(ImVec2 canvas_size, ImVec2 canvas_pos);
-    inline glm::vec2 get_canvas_pos(SDL_Event& mouse_event);
     inline bool on_mouse_button_down(SDL_Event& event);
     inline bool start_tool_stroke(SDL_Event& event, std::shared_ptr<Domain::Tools::Tool>& tool);
     inline bool start_tool_click(SDL_Event& event, std::shared_ptr<Domain::Tools::Tool>& tool);

@@ -24,9 +24,10 @@ void BrushTool::start_stroke(glm::vec2 position) {
         return;
     }
 
-    last_position = position;
+    glm::vec2 canvas_pos = get_canvas_pos(position);
+    last_position = canvas_pos;
     // A zero length segment paints a single dot
-    paint_segment(position, position);
+    paint_segment(canvas_pos, canvas_pos);
 }
 
 void BrushTool::continue_stroke(glm::vec2 position) {
@@ -35,16 +36,19 @@ void BrushTool::continue_stroke(glm::vec2 position) {
     if (!in_stroke || target_layer.expired())
         return;
 
-    paint_segment(last_position, position);
-    last_position = position;
+    glm::vec2 canvas_pos = get_canvas_pos(position);
+    paint_segment(last_position, canvas_pos);
+    last_position = canvas_pos;
 }
 
 void BrushTool::stop_stroke(glm::vec2 position) {
-    // Paint the final segment before the stroke ends
-    if (in_stroke && !target_layer.expired())
-        paint_segment(last_position, position);
-
     Domain::Tools::StrokeTool::stop_stroke(position);
+
+    // Paint the final segment before the stroke ends
+    glm::vec2 canvas_pos = get_canvas_pos(position);
+    if (in_stroke && !target_layer.expired())
+        paint_segment(last_position, canvas_pos);
+
     target_layer.reset();
 }
 
@@ -91,6 +95,15 @@ void BrushTool::paint_segment(glm::vec2 from, glm::vec2 to) {
     brush_painter->paint(from, to, layer->get_read_texture(), layer->get_write_texture(), get_settings());
     // Make the freshly written buffer the layer's contents
     layer->switch_buffers();
+}
+
+glm::vec2 BrushTool::get_canvas_pos(glm::vec2 screen_pos) const {
+    auto doc = doc_service.get_active_document().lock();
+    if (doc == nullptr) return {0.0, 0.0};
+    auto canvas = doc->get_canvas().lock();
+    if (canvas == nullptr) return {0.0, 0.0};
+
+    return canvas->get_canvas_pos(screen_pos);
 }
 
 }

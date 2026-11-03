@@ -60,13 +60,6 @@ inline bool InputManager::mouse_inside_canvas(ImVec2 canvas_size, ImVec2 canvas_
            mouse_y <= canvas_pos.y + canvas_size.y;
 }
 
-inline glm::vec2 InputManager::get_canvas_pos(SDL_Event& mouse_event) {
-    if (active_drag_canvas == nullptr) return {0, 0};
-
-    glm::vec2 screen_pos = {mouse_event.motion.x, mouse_event.motion.y};
-    return active_drag_canvas->get_canvas_pos(screen_pos);
-}
-
 inline bool InputManager::on_mouse_button_down(SDL_Event& event) {
     // Get the active tool
     auto tool = toolbar.get_active_tool();
@@ -110,9 +103,9 @@ inline bool InputManager::start_tool_stroke(SDL_Event& event, std::shared_ptr<Do
     }
 
     // Get mouse pos
-    glm::vec2 canvas_pos = get_canvas_pos(event);
+    glm::vec2 mouse_pos = {event.motion.x, event.motion.y};
 
-    stroke_tool->start_stroke(canvas_pos);
+    stroke_tool->start_stroke(mouse_pos);
 
     // Stark stroke
     dragging = true;
@@ -131,7 +124,7 @@ inline bool InputManager::on_mouse_button_up(SDL_Event& event) {
         return false;
 
     dragging = false;
-    active_drag_tool->stop_stroke(get_canvas_pos(event));
+    active_drag_tool->stop_stroke({event.motion.x, event.motion.y});
 
     return true;
 }
@@ -140,7 +133,7 @@ inline bool InputManager::on_mouse_movement(SDL_Event& event) {
     if (!dragging)
         return false;
 
-    active_drag_tool->continue_stroke(get_canvas_pos(event));
+    active_drag_tool->continue_stroke({event.motion.x, event.motion.y});
 
     return true;
 }
