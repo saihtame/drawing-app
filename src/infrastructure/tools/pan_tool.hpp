@@ -22,6 +22,9 @@ public: // Tool implementation
 
 private: // Dependencies
     Application::Documents::DocumentService& doc_service;
+
+private: // Data
+    glm::vec2 last_pan_position;
 };
 
 }
