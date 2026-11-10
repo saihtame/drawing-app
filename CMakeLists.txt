@@ -22,6 +22,7 @@ add_subdirectory(external/glad)
 add_subdirectory(external/glm)
 add_subdirectory(external/stb)
 add_subdirectory(external/uuid_v4 EXCLUDE_FROM_ALL)
+add_subdirectory(external/nativefiledialog-extended)
 include(cmake/imgui.cmake)
 add_subdirectory(src)
 

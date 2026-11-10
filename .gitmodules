@@ -16,3 +16,6 @@
 [submodule "external/uuid_v4"]
 	path = external/uuid_v4
 	url = git@github.com:crashoz/uuid_v4.git
+[submodule "external/nativefiledialog-extended"]
+	path = external/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended.git

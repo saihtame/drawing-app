@@ -19,6 +19,7 @@ target_link_libraries(${PRESENTATION_TARGET}
         glad
         stb::image
         imgui
+        nfd
     PUBLIC
         ${APPLICATION_TARGET}
         drawing_app_config
