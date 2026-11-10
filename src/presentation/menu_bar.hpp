@@ -20,6 +20,7 @@ private: // File menu
     inline void load_file();
     inline void save_file();
     inline void save_file_as();
+    inline void export_file();
 
 private: // View menu
     inline void fit_to_screen();

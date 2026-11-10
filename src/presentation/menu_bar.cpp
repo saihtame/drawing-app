@@ -1,6 +1,7 @@
 #include "menu_bar.hpp"
 #include "imgui.h"
 #include "presentation/popups/new_file_popup.hpp"
+#include <nfd.h>
 
 
 namespace  Presentation {
@@ -8,7 +9,8 @@ namespace  Presentation {
 MenuBar::MenuBar(CanvasPanels::CanvasPanelService& canvas_panel_service,
                  Application::Documents::DocumentService& doc_service,
                  Popups::PopupManager& popup_manager)
- : canvas_panel_service(canvas_panel_service), doc_service(doc_service), popup_manager(popup_manager) {
+ : canvas_panel_service(canvas_panel_service), doc_service(doc_service),
+   popup_manager(popup_manager) {
 }
 
 void MenuBar::render() {
@@ -67,12 +69,94 @@ inline void MenuBar::new_file() {
 }
 
 inline void MenuBar::load_file() {
+    std::cout << "Getting load file path from dialog" << std::endl;
+    std::filesystem::path load_path;
+    NFD_Init();
+    nfdu8char_t *out_path;
+    nfdu8filteritem_t filters[1] = { { "Project File", "dproj" } };
+    nfdopendialogu8args_t args = {0};
+    args.filterList = filters;
+    args.filterCount = 2;
+    nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
+    if (result == NFD_OKAY)
+    {
+        std::cout << "Got path: " << out_path << std::endl;
+        load_path = out_path;
+        NFD_FreePathU8(out_path);
+    }
+    else if (result == NFD_CANCEL)
+    {
+        std::cout << "User cancelled dialog" << std::endl;
+        NFD_Quit();
+        return;
+    }
+    else 
+    {
+        std::cerr << "Load file dialog error: " << NFD_GetError() << std::endl;
+        NFD_Quit();
+        return;
+    }
+    NFD_Quit();
+
+    doc_service.load_document(load_path);
 }
 
 inline void MenuBar::save_file() {
+    // Get the active document
+    auto doc = doc_service.get_active_document();
+    auto doc_locked = doc.lock();
+    if (doc_locked == nullptr) return; // Do nothing, if we have no active document
+
+    // Check if we have a save path associated with the document
+    auto save_path = doc_locked->get_save_path();
+    if (!save_path.has_value()) {
+        save_file_as(); // Do with a save file popup, to get a path.
+        return;
+    }
+
+    // Save document
+    doc_service.save_document(save_path.value(), doc_locked);
 }
 
 inline void MenuBar::save_file_as() {
+    // Get the active document
+    auto doc = doc_service.get_active_document();
+    auto doc_locked = doc.lock();
+    if (doc_locked == nullptr) return; // Do nothing, if we have no active document
+
+    // Get save path from OS dialog
+    std::cout << "Getting save file path from dialog..." << std::endl;
+    std::filesystem::path save_path;
+    NFD_Init();
+    nfdu8char_t *out_path;
+    nfdu8filteritem_t filters[1] = { { "Project File", "dproj" } };
+    nfdsavedialogu8args_t args = {0};
+    args.filterList = filters;
+    args.filterCount = 1;
+    nfdresult_t result = NFD_SaveDialogU8_With(&out_path, &args);
+    if (result == NFD_OKAY) {
+        std::cout << "Got path: " << out_path << std::endl;
+        save_path = out_path;
+        NFD_FreePathU8(out_path);
+    }
+    else if (result == NFD_CANCEL) {
+        std::cout << "User cancelled dialog" << std::endl;
+        NFD_Quit();
+        return;
+    }
+    else {
+        std::cerr << "Save file dialog error: " << NFD_GetError() << std::endl;
+        NFD_Quit();
+        return;
+    }
+    NFD_Quit();
+
+    // Save document
+    doc_service.save_document(save_path, doc_locked);
+}
+
+inline void MenuBar::export_file() {
+    std::cout << "Exporting file" << std::endl;
 }
 
 inline void MenuBar::fit_to_screen() {
