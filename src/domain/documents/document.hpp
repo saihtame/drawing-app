@@ -26,6 +26,8 @@ public: // Getters
      */
     [[nodiscard]] std::weak_ptr<Canvas> get_canvas() const noexcept;
     [[nodiscard]] UUIDv4::UUID get_uuid() const noexcept { return uuid; }
+    [[nodiscard]] std::optional<std::filesystem::path> get_save_path() { return save_path; }
+    void set_save_path(std::filesystem::path path) { save_path = path; }
 
 private: // Data
     UUIDv4::UUID uuid;
