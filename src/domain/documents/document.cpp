@@ -13,8 +13,8 @@ Document::Document(const CanvasFactory& canvas_factory, glm::uvec2 size)
     uuid = uuid_generator.getUUID();
 }
 
-std::weak_ptr<Canvas> Document::get_canvas() const noexcept {
-    return canvas;
+Canvas& Document::get_canvas() noexcept {
+    return *canvas;
 }
 
 }

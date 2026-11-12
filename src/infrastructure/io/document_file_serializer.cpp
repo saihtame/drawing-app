@@ -83,12 +83,7 @@ std::shared_ptr<Domain::Documents::Document> DocumentFileSerializer::load_docume
     doc->set_save_path(path);
 
     // Get canvas
-    auto canvas = doc->get_canvas();
-    auto canvas_locked = canvas.lock();
-    if (canvas_locked == nullptr) {
-        std::cerr << "Could not load document. Null canvas." << std::endl;
-        return nullptr;
-    }
+    auto& canvas = doc->get_canvas();
 
     // Restore each layer, in the order they were saved
     const int width = static_cast<int>(json_data.size_width);
@@ -123,7 +118,7 @@ std::shared_ptr<Domain::Documents::Document> DocumentFileSerializer::load_docume
         }
 
         // Create the layer and upload the decoded pixels
-        auto layer = canvas_locked->add_layer(layer_data.name).lock();
+        auto layer = canvas.add_layer(layer_data.name).lock();
         auto gpu_layer = std::dynamic_pointer_cast<Canvas::GpuCanvasLayer>(layer);
         if (gpu_layer == nullptr) {
             std::cerr << "Failed to cast canvas layer to GPU canvas layer" << std::endl;
@@ -138,27 +133,15 @@ std::shared_ptr<Domain::Documents::Document> DocumentFileSerializer::load_docume
     return doc;
 }
 
-void DocumentFileSerializer::export_png(std::filesystem::path path, const std::weak_ptr<Domain::Documents::Document> &document) const {
+void DocumentFileSerializer::export_png(std::filesystem::path path, Domain::Documents::Document &document) const {
     std::cout << "Exporting document to path " << path << std::endl;
 
-    // Lock document
-    auto doc_locked = document.lock();
-    if (doc_locked == nullptr) {
-        std::cerr << "Could not export document. Null document." << std::endl;
-        return;
-    }
-
     // Get canvas
-    auto canvas = doc_locked->get_canvas();
-    auto canvas_locked = canvas.lock();
-    if (canvas_locked == nullptr) {
-        std::cerr << "Could not export document. Null canvas." << std::endl;
-        return;
-    }
+    auto& canvas = document.get_canvas();
 
     // Flatten all visible layers
-    const glm::uvec2 canvas_size = canvas_locked->get_size();
-    auto pixels = canvas_locked->read_composited_pixels();
+    const glm::uvec2 canvas_size = canvas.get_size();
+    auto pixels = canvas.read_composited_pixels();
 
     // The canvas holds premultiplied alpha, PNG stores straight alpha
     for (size_t i = 0; i < pixels.size(); i += 4) {
@@ -181,27 +164,15 @@ void DocumentFileSerializer::export_png(std::filesystem::path path, const std::w
     }
 }
 
-void DocumentFileSerializer::save_document(std::filesystem::path path, const std::weak_ptr<Domain::Documents::Document> &document) const {
+void DocumentFileSerializer::save_document(std::filesystem::path path, Domain::Documents::Document &document) const {
     std::cout << "Saving document to path " << path << std::endl;
 
-    // Lock document
-    auto doc_locked = document.lock();
-    if (doc_locked == nullptr) {
-        std::cerr << "Could not save document. Null document." << std::endl;
-        return;
-    }
-
     // Get canvas
-    auto canvas = doc_locked->get_canvas();
-    auto canvas_locked = canvas.lock();
-    if (canvas_locked == nullptr) {
-        std::cerr << "Could not save document. Null canvas." << std::endl;
-        return;
-    }
+    auto& canvas = document.get_canvas();
 
     // Prepare json data from document
     ProjectJsonData json_data;
-    glm::uvec2 canvas_size = canvas_locked->get_size();
+    glm::uvec2 canvas_size = canvas.get_size();
     json_data.size_width = canvas_size.x;
     json_data.size_height= canvas_size.y;
 
@@ -224,10 +195,10 @@ void DocumentFileSerializer::save_document(std::filesystem::path path, const std
     const int width = static_cast<int>(canvas_size.x);
     const int height = static_cast<int>(canvas_size.y);
     const std::ptrdiff_t row_stride = static_cast<std::ptrdiff_t>(canvas_size.x) * 4;
-    int layers = canvas_locked->get_layer_count();
+    int layers = canvas.get_layer_count();
     for (int i = 0; i < layers; i++) {
         // Get canvas layer
-        auto layer = canvas_locked->get_layer(i);
+        auto layer = canvas.get_layer(i);
         auto layer_locked = layer.lock();
         if (layer_locked == nullptr) {
             std::cerr << "Failed to lock layer" << std::endl;

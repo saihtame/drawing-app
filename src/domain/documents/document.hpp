@@ -21,10 +21,11 @@ private: // Dependencies
 
 public: // Getters and setters
     /**
-     * @brief Returns a weak_ptr to the canvas.
-     * The canvas is created imediately, so this should always return a non-expired ptr.
+     * @brief Returns the document's canvas.
+     * The canvas is created immediately in the constructor and never reset, so
+     * this always returns a valid reference.
      */
-    [[nodiscard]] std::weak_ptr<Canvas> get_canvas() const noexcept;
+    [[nodiscard]] Canvas& get_canvas() noexcept;
     [[nodiscard]] UUIDv4::UUID get_uuid() const noexcept { return uuid; }
     [[nodiscard]] std::optional<std::filesystem::path> get_save_path() { return save_path; }
     void set_save_path(std::filesystem::path path) { save_path = path; }

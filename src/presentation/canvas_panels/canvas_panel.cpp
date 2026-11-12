@@ -67,13 +67,8 @@ bool CanvasPanel::render() {
                 pos.x + size.x / 2.0f,
                 pos.y + size.y / 2.0f
             };
-            auto canvas = document_locked->get_canvas();
-            if (auto canvas_locked = canvas.lock()) {
-                canvas_locked->render(render_position);
-            } else {
-                std::cerr << "Document has invalid canvas" << std::endl;
-                open = false;
-            }
+            auto& canvas = document_locked->get_canvas();
+            canvas.render(render_position);
         } else {
             std::cerr << "Invalid document" << std::endl;
             open = false;
@@ -91,10 +86,9 @@ const std::string& CanvasPanel::get_panel_name() const {
 inline void CanvasPanel::fit_to_screen() {
     if (auto document_locked = document.lock()) {
         // Fit canvas to screen
-        if (auto canvas = document_locked->get_canvas().lock()) {
-            auto screen_size = ImGui::GetContentRegionAvail();
-            canvas->fit_screen({screen_size.x, screen_size.y});
-        }
+        auto& canvas = document_locked->get_canvas();
+        auto screen_size = ImGui::GetContentRegionAvail();
+        canvas.fit_screen({screen_size.x, screen_size.y});
     }
     fit_to_screen_pending = false;
 }

@@ -14,15 +14,11 @@ DocumentService::DocumentService(const DocumentSerializer& serializer,
 void DocumentService::new_document(glm::uvec2 size) {
     auto document = std::make_shared<Domain::Documents::Document>(canvas_factory, size);
     // Create first layer
-    auto canvas = document->get_canvas();
-    if (auto canvas_locked = canvas.lock()) {
-        auto layer = canvas_locked->add_layer();
-        // Fill layer with white
-        if (auto layer_locked = layer.lock()) {
-            layer_locked->fill({1.0, 1.0, 1.0, 1.0});
-        }
-    } else {
-        std::cerr << "Failed to initial canvas layer" << std::endl;
+    auto& canvas = document->get_canvas();
+    auto layer = canvas.add_layer();
+    // Fill layer with white
+    if (auto layer_locked = layer.lock()) {
+        layer_locked->fill({1.0, 1.0, 1.0, 1.0});
     }
     documents.insert({document->get_uuid(), document});
     notify_observers();
@@ -81,7 +77,7 @@ void DocumentService::load_document(std::filesystem::path path) {
 #endif
 }
 
-void DocumentService::save_document(std::filesystem::path path, std::weak_ptr<Domain::Documents::Document> document) {
+void DocumentService::save_document(std::filesystem::path path, Domain::Documents::Document& document) {
     serializer.save_document(path, document);
 
 #ifdef _DEBUG
@@ -89,7 +85,7 @@ void DocumentService::save_document(std::filesystem::path path, std::weak_ptr<Do
 #endif
 }
 
-void DocumentService::export_png(std::filesystem::path path, std::weak_ptr<Domain::Documents::Document> document) {
+void DocumentService::export_png(std::filesystem::path path, Domain::Documents::Document& document) {
     serializer.export_png(path, document);
 
 #ifdef _DEBUG

@@ -60,17 +60,18 @@ std::weak_ptr<Canvas::GpuCanvasLayer> BrushTool::resolve_target_layer() {
     }
 
     // The domain only exposes the abstract Canvas, but every document in this
-    // app is created through GpuCanvasFactory. dynamic_pointer_cast rather than
-    // static so a different implementation fails loudly instead of corrupting.
-    auto canvas = std::dynamic_pointer_cast<Canvas::GpuCanvas>(document->get_canvas().lock());
-    if (canvas == nullptr) {
+    // app is created through GpuCanvasFactory. dynamic_cast rather than
+    // static_cast so a different implementation fails loudly instead of corrupting.
+    auto& canvas = document->get_canvas();
+    auto* gpu_canvas = dynamic_cast<Canvas::GpuCanvas*>(&canvas);
+    if (gpu_canvas == nullptr) {
         std::cerr << "BrushTool: active document canvas is not a GpuCanvas" << std::endl;
         return {};
     }
 
     // Canvas::get_selected_layer hands back the abstract domain type. Every
     // layer a GpuCanvas owns is a GpuCanvasLayer, so this is safe.
-    auto layer = canvas->get_selected_layer().lock();
+    auto layer = gpu_canvas->get_selected_layer().lock();
     if (layer == nullptr) {
         std::cerr << "BrushTool: no layer selected" << std::endl;
         return {};
@@ -100,10 +101,8 @@ void BrushTool::paint_segment(glm::vec2 from, glm::vec2 to) {
 glm::vec2 BrushTool::get_canvas_pos(glm::vec2 screen_pos) const {
     auto doc = doc_service.get_active_document().lock();
     if (doc == nullptr) return {0.0, 0.0};
-    auto canvas = doc->get_canvas().lock();
-    if (canvas == nullptr) return {0.0, 0.0};
 
-    return canvas->get_canvas_pos(screen_pos);
+    return doc->get_canvas().get_canvas_pos(screen_pos);
 }
 
 }

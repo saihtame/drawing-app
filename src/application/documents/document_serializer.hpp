@@ -17,8 +17,8 @@ public:
 
 public:
     virtual std::shared_ptr<Domain::Documents::Document> load_document(std::filesystem::path path) const = 0;
-    virtual void save_document(std::filesystem::path, const std::weak_ptr<Domain::Documents::Document>& document) const = 0;
-    virtual void export_png(std::filesystem::path path, const std::weak_ptr<Domain::Documents::Document>& document) const = 0;
+    virtual void save_document(std::filesystem::path, Domain::Documents::Document& document) const = 0;
+    virtual void export_png(std::filesystem::path path, Domain::Documents::Document& document) const = 0;
 };
 
 

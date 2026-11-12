@@ -62,7 +62,7 @@ drawing-app/
 Pure business logic, no dependencies on other layers or framework libraries (only `uuid_v4` and the header-only `glm`, which is used by `Canvas`, `CanvasLayer` and `StrokeTool`).
 
 **Documents** (`domain/documents/`):
-- `Document`: Represents a drawing document. Owns a Canvas via factory, has UUID and an optional save path (`get_save_path()` / `set_save_path()`).
+- `Document`: Represents a drawing document. Owns a Canvas via factory, has UUID and an optional save path (`get_save_path()` / `set_save_path()`). `get_canvas()` returns a `Canvas&`: the canvas is created in the constructor and never reset.
 - `Canvas` (abstract): Interface for canvas operations - rendering, layer management (add/remove/move), selection, zoom/pan utilities. `add_layer(name)` takes an optional display name, and `read_composited_pixels()` returns the flattened visible layers as packed RGBA8 for export. 
 - `CanvasLayer` (abstract): Interface for individual layers - visibility, fill, name, UUID.
 - `CanvasFactory` (interface): Factory for creating Canvas instances.
@@ -78,8 +78,8 @@ Pure business logic, no dependencies on other layers or framework libraries (onl
 Use cases and port interfaces. Depends on Domain.
 
 **Documents**:
-- `DocumentService`: Manages documents lifecycle (new/load/save/export/close), active document tracking, observer pattern for UI updates. Stores documents in unordered_map by UUID. Loading a document also makes it the active document.
-- `DocumentSerializer` (interface/port): Abstract serializer for document I/O - `load_document`, `save_document`, `export_png`.
+- `DocumentService`: Manages documents lifecycle (new/load/save/export/close), active document tracking, observer pattern for UI updates. Stores documents in unordered_map by UUID. Loading a document also makes it the active document. Save/export take a `Document&` because the calls are synchronous.
+- `DocumentSerializer` (interface/port): Abstract serializer for document I/O - `load_document`, `save_document(Document&)`, `export_png(Document&)`.
 - `DocumentServiceObserver`: Observer interface for document changes.
 
 **Tools**:
@@ -178,6 +178,27 @@ Post-build steps copy `shaders/` and `assets/` to `build/bin/`.
 - **Interface Segregation**: Abstract base classes for Domain entities (`Canvas`, `CanvasLayer`, `Tool`)
 - **Dependency Injection**: Constructor injection throughout (see `main.cpp`)
 
+### Ownership & Pointer Policy
+
+The app is single-threaded and ownership is a strict tree, so most handlers should not be `weak_ptr`:
+
+- **Owning handles**: use `unique_ptr` for exclusive ownership and `shared_ptr` only where ownership is genuinely shared (documents in `DocumentService`, layers in a canvas, panels in `CanvasPanelService`).
+- **Non-owning handles**: prefer `T&` when the object is guaranteed to exist for the duration of the call (a parent owns its children; `Document::get_canvas()` can never fail). Use `T*` only when the reference is nullable, and document the lifetime invariant.
+- **`weak_ptr`**: reserve it for relationships where expiration is a real state the code must handle:
+  - observer lists (`DocumentService::observers`);
+  - aliases into collections whose elements can be removed (`GpuCanvas::selected_layer`, `CanvasPanelService::visible_panel`);
+  - back-references across objects with independent lifetimes (e.g. `CanvasPanel::document`).
+- Do not put `weak_ptr` in function parameters when the caller owns the object and the call is synchronous - the caller already holds a strong reference. Save/export use `Document&` for this reason.
+- Every `.lock()` implies a "maybe missing" branch. If the object cannot be missing by construction, a reference expresses that better than a null check nobody can trigger.
+
+### Concurrency & Async IO (planned)
+
+File dialogs block the render loop today (the OS may report the app as unresponsive while a dialog is open). The intended direction is to run dialogs and file/encoding work off the render thread. When doing that:
+
+- **GPU work stays on the render thread.** Compositing and `glGetTextureImage`/`glTextureSubImage2D` require the GL context to be current. Async save/export should take a CPU snapshot of the pixels on the render thread, then encode/write on the worker.
+- **Jobs must own what they use.** Capturing `T&`/`T*` in a deferred task is unsafe once document/layer removal can interleave. Capture an owning `shared_ptr` for the job's lifetime, or a value snapshot; `weak_ptr` is appropriate only to detect "document was closed" (lock it once and hold the result).
+- **NFD/GTK is thread-affine.** Initialize and use a dialog on the same thread (NFD's GTK backend expects all GTK calls on one thread); do not call `NFD_Init`/dialog functions from multiple threads.
+
 ## Code Style & Conventions
 
 - **Namespaces**: Nested namespaces (`Domain::Documents`, `Infrastructure::Canvas`, etc.)
@@ -185,7 +206,7 @@ Post-build steps copy `shaders/` and `assets/` to `build/bin/`.
 - **Include guards**: `#pragma once`
 - **Naming**: `snake_case` for files, classes use `PascalCase`, methods/variables `snake_case`
 - **Const correctness**: Used where appropriate (`const`, `noexcept`, `[[nodiscard]]`)
-- **Smart pointers**: Extensive use of `shared_ptr`/`weak_ptr` for ownership/lifecycle management
+- **Smart pointers**: `unique_ptr`/`shared_ptr` for ownership, `T&`/`T*` for non-owning references, `weak_ptr` only for observers and removable/optional aliases (see "Ownership & Pointer Policy")
 - **Member order**: public/private sections organized (ctors, methods, data)
 - **Forward declarations**: Used to minimize includes
 
@@ -308,7 +329,7 @@ When working with this codebase:
 7. Use the existing DI pattern in `main.cpp` for wiring components
 8. Keep includes minimal; use forward declarations where appropriate
 9. Follow existing naming: PascalCase for classes, snake_case for files/methods/vars
-10. Prefer `std::weak_ptr` for non-owning references (e.g. observers, canvas references from Document)
+10. Use `T&` for non-owning references with guaranteed lifetime and `T*` for nullable ones; reserve `weak_ptr` for observers and removable aliases (see "Ownership & Pointer Policy")
 11. Never copy a `Rendering::Texture`: bind accessor results by reference (`auto&`), since copies share and double-delete the GL name
 12. Value-initialize miniz archives (`mz_zip_archive archive{}`) and wrap reader/writer lifetime in a guard so `mz_zip_*_end` always runs
 13. Null-check NFD dialog output before converting it to a path; `NFD_OKAY` does not guarantee a non-null filename

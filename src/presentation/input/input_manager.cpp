@@ -98,17 +98,8 @@ inline bool InputManager::start_tool_stroke(SDL_Event& event, std::shared_ptr<Do
         return false;
     }
 
-    // Try to get a canvas to operate on
-    auto active_document = doc_service.get_active_document();
-    if (auto active_document_locked = active_document.lock()) {
-        auto active_drag_canvas_weak = active_document_locked->get_canvas();
-        if (auto active_drag_canvas_locked = active_drag_canvas_weak.lock()) {
-            // Cache the active canvas
-            active_drag_canvas = active_drag_canvas_locked;
-        } else {
-            return false;
-        }
-    } else {
+    // Documents always own a canvas, so an active document guarantees a paint target
+    if (doc_service.get_active_document().expired()) {
         // No active document at the moment
         return false;
     }

@@ -125,7 +125,7 @@ inline void MenuBar::save_file() {
 
     // Save document
     doc_locked->set_save_path(save_path.value());
-    doc_service.save_document(save_path.value(), doc_locked);
+    doc_service.save_document(save_path.value(), *doc_locked);
 }
 
 inline void MenuBar::save_file_as() {
@@ -168,7 +168,7 @@ inline void MenuBar::save_file_as() {
 
     // Save document
     doc_locked->set_save_path(save_path);
-    doc_service.save_document(save_path, doc_locked);
+    doc_service.save_document(save_path, *doc_locked);
 }
 
 inline void MenuBar::export_file() {
@@ -229,17 +229,15 @@ inline void MenuBar::export_file() {
         export_path.replace_extension(".png");
 
     // Export document
-    doc_service.export_png(export_path, doc_locked);
+    doc_service.export_png(export_path, *doc_locked);
 }
 
 inline void MenuBar::fit_to_screen() {
     auto active_document = doc_service.get_active_document();
     if (auto document_locked = active_document.lock()) {
-        if (auto canvas = document_locked->get_canvas().lock()) {
-            auto panel = canvas_panel_service.get_canvas_panel(document_locked->get_uuid());
-            if (auto panel_locked = panel.lock()) {
-                panel_locked->request_fit_to_screen();
-            }
+        auto panel = canvas_panel_service.get_canvas_panel(document_locked->get_uuid());
+        if (auto panel_locked = panel.lock()) {
+            panel_locked->request_fit_to_screen();
         }
     }
 }
@@ -247,18 +245,16 @@ inline void MenuBar::fit_to_screen() {
 inline void MenuBar::set_zoom(float value) {
     auto active_document = doc_service.get_active_document();
     if (auto document_locked = active_document.lock()) {
-        if (auto canvas = document_locked->get_canvas().lock()) {
-            canvas->set_zoom(value);
-        }
+        auto& canvas = document_locked->get_canvas();
+        canvas.set_zoom(value);
     }
 }
 
 inline void MenuBar::center_canvas() {
     auto active_document = doc_service.get_active_document();
     if (auto document_locked = active_document.lock()) {
-        if (auto canvas = document_locked->get_canvas().lock()) {
-            canvas->set_rendering_offset({0.0, 0.0});
-        }
+        auto& canvas = document_locked->get_canvas();
+        canvas.set_rendering_offset({0.0, 0.0});
     }
 }
 
