@@ -24,7 +24,7 @@ public: // Render
 public: // Layer management
     [[nodiscard]] int get_layer_count() const noexcept override;
     [[nodiscard]] std::weak_ptr<Domain::Documents::CanvasLayer> get_layer(int ind) const override;
-    std::weak_ptr<Domain::Documents::CanvasLayer> add_layer() override;
+    std::weak_ptr<Domain::Documents::CanvasLayer> add_layer(std::string name) override;
     void remove_layer(int ind) override;
     void move_layer(int from, int to) override;
 public: // Selected layer

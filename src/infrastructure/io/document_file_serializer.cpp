@@ -1,17 +1,40 @@
 #include "document_file_serializer.hpp"
 #include <glaze/glaze.hpp>
 #include <glm/ext/vector_uint2.hpp>
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 #include "domain/documents/document.hpp"
 #include "infrastructure/rendering/shader.hpp"
 #include "project_json_data.hpp"
 #include "miniz.h"
 #include "../canvas/gpu_canvas_layer.hpp"
+#include "stb_image.h"
 #include "stb_image_write.h"
 
 
 namespace Infrastructure::IO {
+
+namespace {
+
+/**
+ * @brief Copies an archive entry into memory.
+ * Returns an empty buffer when the entry is missing or cannot be extracted.
+ */
+std::vector<std::uint8_t> extract_entry(mz_zip_archive& archive, const std::string& name) {
+    size_t size = 0;
+    void* data = mz_zip_reader_extract_file_to_heap(&archive, name.c_str(), &size, 0);
+    if (data == nullptr)
+        return {};
+
+    std::vector<std::uint8_t> entry(static_cast<std::uint8_t*>(data),
+                                    static_cast<std::uint8_t*>(data) + size);
+    mz_free(data);
+    return entry;
+}
+
+}
 
 DocumentFileSerializer::DocumentFileSerializer(const Domain::Documents::CanvasFactory& canvas_factory)
  : canvas_factory(canvas_factory) {
@@ -19,7 +42,99 @@ DocumentFileSerializer::DocumentFileSerializer(const Domain::Documents::CanvasFa
 
 std::shared_ptr<Domain::Documents::Document> DocumentFileSerializer::load_document(std::filesystem::path path) const {
     std::cout << "Loading document from path " << path << std::endl;
-    auto doc = std::make_shared<Domain::Documents::Document>(canvas_factory, glm::uvec2());
+
+    // Open project file
+    mz_zip_archive project_file{};
+    if (!mz_zip_reader_init_file(&project_file, path.c_str(), 0)) {
+        std::cerr << "Could not open project file " << path << ": "
+                  << mz_zip_get_error_string(mz_zip_get_last_error(&project_file))
+                  << std::endl;
+        return nullptr;
+    }
+
+    // Make sure the archive handle is always released, including on early returns
+    struct ZipReaderGuard {
+        mz_zip_archive& archive;
+        ~ZipReaderGuard() { mz_zip_reader_end(&archive); }
+    } project_file_guard{project_file};
+
+    // Read and parse the project metadata
+    auto json_bytes = extract_entry(project_file, "project.json");
+    if (json_bytes.empty()) {
+        std::cerr << "Could not read project.json from " << path << ": "
+                  << mz_zip_get_error_string(mz_zip_get_last_error(&project_file))
+                  << std::endl;
+        return nullptr;
+    }
+    const std::string json(json_bytes.begin(), json_bytes.end());
+    ProjectJsonData json_data{};
+    if (auto ec = glz::read<glz::opts{}>(json_data, json)) {
+        std::cerr << "Could not parse project.json: " << glz::format_error(ec, json) << std::endl;
+        return nullptr;
+    }
+    if (json_data.size_width == 0 || json_data.size_height == 0) {
+        std::cerr << "Project file has an invalid canvas size" << std::endl;
+        return nullptr;
+    }
+
+    // Create the document and remember the file it came from
+    auto doc = std::make_shared<Domain::Documents::Document>(
+        canvas_factory, glm::uvec2{json_data.size_width, json_data.size_height});
+    doc->set_save_path(path);
+
+    // Get canvas
+    auto canvas = doc->get_canvas();
+    auto canvas_locked = canvas.lock();
+    if (canvas_locked == nullptr) {
+        std::cerr << "Could not load document. Null canvas." << std::endl;
+        return nullptr;
+    }
+
+    // Restore each layer, in the order they were saved
+    const int width = static_cast<int>(json_data.size_width);
+    const int height = static_cast<int>(json_data.size_height);
+    for (const auto& layer_data : json_data.layers) {
+        // Extract the encoded layer
+        auto png_bytes = extract_entry(project_file, layer_data.file);
+        if (png_bytes.empty()) {
+            std::cerr << "Could not read " << layer_data.file << " from " << path << ": "
+                      << mz_zip_get_error_string(mz_zip_get_last_error(&project_file))
+                      << std::endl;
+            return nullptr;
+        }
+
+        // Decode the PNG into tightly packed RGBA8
+        int decoded_width = 0;
+        int decoded_height = 0;
+        int channels = 0;
+        stbi_uc* raw_pixels = stbi_load_from_memory(
+            png_bytes.data(), static_cast<int>(png_bytes.size()),
+            &decoded_width, &decoded_height, &channels, 4);
+        std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> pixels(raw_pixels, &stbi_image_free);
+        if (raw_pixels == nullptr) {
+            std::cerr << "Could not decode " << layer_data.file << ": "
+                      << stbi_failure_reason() << std::endl;
+            return nullptr;
+        }
+        if (decoded_width != width || decoded_height != height) {
+            std::cerr << layer_data.file << " has size " << decoded_width << "x" << decoded_height
+                      << ", expected " << width << "x" << height << std::endl;
+            return nullptr;
+        }
+
+        // Create the layer and upload the decoded pixels
+        auto layer = canvas_locked->add_layer(layer_data.name).lock();
+        auto gpu_layer = std::dynamic_pointer_cast<Canvas::GpuCanvasLayer>(layer);
+        if (gpu_layer == nullptr) {
+            std::cerr << "Failed to cast canvas layer to GPU canvas layer" << std::endl;
+            return nullptr;
+        }
+        gpu_layer->upload_pixels({
+            raw_pixels,
+            static_cast<size_t>(decoded_width) * decoded_height * 4,
+        });
+    }
+
     return doc;
 }
 

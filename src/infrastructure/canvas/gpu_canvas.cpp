@@ -53,9 +53,12 @@ std::weak_ptr<Domain::Documents::CanvasLayer> GpuCanvas::get_layer(int ind) cons
     return *it;
 }
 
-std::weak_ptr<Domain::Documents::CanvasLayer> GpuCanvas::add_layer() {
+std::weak_ptr<Domain::Documents::CanvasLayer> GpuCanvas::add_layer(std::string layer_name) {
+    // Fall back to a generated name when none was provided
+    if (layer_name.empty())
+        layer_name = "Layer " + std::to_string(layers.size() + 1);
+
     // Create layer
-    std::string layer_name = "Layer " + std::to_string(layers.size() + 1);
     auto layer = std::make_shared<GpuCanvasLayer>(layer_name, size);
 
     // Add to list

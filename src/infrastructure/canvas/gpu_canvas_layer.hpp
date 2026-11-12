@@ -1,7 +1,9 @@
 #pragma once
 #include "domain/documents/canvas_layer.hpp"
 #include "infrastructure/rendering/texture.hpp"
+#include <cstdint>
 #include <glm/ext/vector_uint2.hpp>
+#include <span>
 
 
 namespace Infrastructure::Canvas {
@@ -13,6 +15,14 @@ public: // Ctors
 
 public: // CanvasLayer implementation
     void fill(glm::vec4 color) override;
+
+public: // Pixel access
+    /**
+     * @brief Replaces the layer's contents with tightly packed RGBA8 pixels.
+     *
+     * @param rgba Pixel data, row-major, 4 bytes per pixel. Must match the layer size.
+     */
+    void upload_pixels(std::span<const std::uint8_t> rgba);
 
 public: // Accessors
     /**

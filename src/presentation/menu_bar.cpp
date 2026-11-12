@@ -115,6 +115,7 @@ inline void MenuBar::save_file() {
     }
 
     // Save document
+    doc_locked->set_save_path(save_path.value());
     doc_service.save_document(save_path.value(), doc_locked);
 }
 
@@ -152,6 +153,7 @@ inline void MenuBar::save_file_as() {
     NFD_Quit();
 
     // Save document
+    doc_locked->set_save_path(save_path);
     doc_service.save_document(save_path, doc_locked);
 }
 

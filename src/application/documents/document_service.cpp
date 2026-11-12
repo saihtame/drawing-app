@@ -74,6 +74,7 @@ void DocumentService::load_document(std::filesystem::path path) {
     }
 
     documents.insert({document->get_uuid(), document});
+    active_document_uuid = document->get_uuid();
     notify_observers();
 #ifdef _DEBUG
     std::cout << "Loaded document from " << path << std::endl;
