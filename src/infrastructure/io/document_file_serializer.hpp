@@ -17,6 +17,7 @@ private: // Dependencies
 public:
     std::shared_ptr<Domain::Documents::Document> load_document(std::filesystem::path path) const override;
     void save_document(std::filesystem::path, const std::weak_ptr<Domain::Documents::Document> &document) const override;
+    void export_png(std::filesystem::path path, const std::weak_ptr<Domain::Documents::Document> &document) const override;
 };
 
 }

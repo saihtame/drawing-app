@@ -5,6 +5,7 @@
 #include "infrastructure/rendering/material.hpp"
 #include "infrastructure/rendering/texture.hpp"
 #include <glm/common.hpp>
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -25,12 +26,7 @@ void GpuCanvas::render(glm::vec2 position) {
     glDisable(GL_BLEND);
 
     // Composit layers together
-    std::vector<uint32_t> layer_tex_ids;
-    layer_tex_ids.reserve(layers.size());
-    for (const auto& layer : layers) {
-        layer_tex_ids.push_back(layer->get_texture().get_id());
-    }
-    compositor.composit(size, texture, layer_tex_ids);
+    composite_layers();
 
     // Update screen pos
     screen_pos = position + rendering_offset;
@@ -38,6 +34,31 @@ void GpuCanvas::render(glm::vec2 position) {
     // Render the canvas with the updated screen pos
     material.use(screen_pos, texture.get_id());
     plane.render();
+}
+
+void GpuCanvas::composite_layers() {
+    // Skip hidden layers so the canvas and exported images agree
+    std::vector<uint32_t> layer_tex_ids;
+    layer_tex_ids.reserve(layers.size());
+    for (const auto& layer : layers) {
+        if (layer->is_visible())
+            layer_tex_ids.push_back(layer->get_texture().get_id());
+    }
+    compositor.composit(size, texture, layer_tex_ids);
+}
+
+std::vector<std::uint8_t> GpuCanvas::read_composited_pixels() {
+    // Recomposit so a visibility change right before exporting is reflected
+    composite_layers();
+    // The compositor writes through an image unit; make those writes visible
+    // to the readback below
+    glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
+
+    std::vector<std::uint8_t> pixels(static_cast<size_t>(size.x) * size.y * 4);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glGetTextureImage(texture.get_id(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                      static_cast<GLsizei>(pixels.size()), pixels.data());
+    return pixels;
 }
 
 int GpuCanvas::get_layer_count() const noexcept {

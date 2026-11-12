@@ -32,6 +32,9 @@ void MenuBar::render() {
             // Save File As
             if (ImGui::MenuItem("Save file as", "", false, has_active_document))
                 save_file_as();
+            // Export As PNG
+            if (ImGui::MenuItem("Export as PNG...", "", false, has_active_document))
+                export_file();
             ImGui::EndMenu();
         }
         /* View menu */
@@ -80,8 +83,14 @@ inline void MenuBar::load_file() {
     nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
     if (result == NFD_OKAY)
     {
-        std::cout << "Got path: " << out_path << std::endl;
+        if (out_path == nullptr)
+        {
+            std::cerr << "Load file dialog did not return a file path" << std::endl;
+            NFD_Quit();
+            return;
+        }
         load_path = out_path;
+        std::cout << "Got path: " << load_path << std::endl;
         NFD_FreePathU8(out_path);
     }
     else if (result == NFD_CANCEL)
@@ -136,8 +145,13 @@ inline void MenuBar::save_file_as() {
     args.filterCount = 1;
     nfdresult_t result = NFD_SaveDialogU8_With(&out_path, &args);
     if (result == NFD_OKAY) {
-        std::cout << "Got path: " << out_path << std::endl;
+        if (out_path == nullptr) {
+            std::cerr << "Save file dialog did not return a file path" << std::endl;
+            NFD_Quit();
+            return;
+        }
         save_path = out_path;
+        std::cout << "Got path: " << save_path << std::endl;
         NFD_FreePathU8(out_path);
     }
     else if (result == NFD_CANCEL) {
@@ -158,7 +172,64 @@ inline void MenuBar::save_file_as() {
 }
 
 inline void MenuBar::export_file() {
-    std::cout << "Exporting file" << std::endl;
+    // Get the active document
+    auto doc = doc_service.get_active_document();
+    auto doc_locked = doc.lock();
+    if (doc_locked == nullptr) return; // Do nothing, if we have no active document
+
+    // Get export path from OS dialog
+    std::cout << "Getting export file path from dialog..." << std::endl;
+    std::filesystem::path export_path;
+
+    // Start in the document's folder (or cwd) so the chooser always has a real
+    // directory selected; virtual locations can yield no local file path.
+    std::filesystem::path default_dir = std::filesystem::current_path();
+    if (auto document_save_path = doc_locked->get_save_path();
+        document_save_path.has_value() && !document_save_path->parent_path().empty()) {
+        default_dir = document_save_path->parent_path();
+    }
+    std::error_code dir_error;
+    if (!std::filesystem::is_directory(default_dir, dir_error))
+        default_dir = std::filesystem::current_path();
+    const std::string default_dir_string = default_dir.string();
+
+    NFD_Init();
+    nfdu8char_t *out_path;
+    nfdu8filteritem_t filters[1] = { { "PNG Image", "png" } };
+    nfdsavedialogu8args_t args = {0};
+    args.filterList = filters;
+    args.filterCount = 1;
+    args.defaultPath = default_dir_string.c_str();
+    args.defaultName = "untitled.png";
+    nfdresult_t result = NFD_SaveDialogU8_With(&out_path, &args);
+    if (result == NFD_OKAY) {
+        if (out_path == nullptr) {
+            std::cerr << "Export dialog did not return a file path" << std::endl;
+            NFD_Quit();
+            return;
+        }
+        export_path = out_path;
+        std::cout << "Got path: " << export_path << std::endl;
+        NFD_FreePathU8(out_path);
+    }
+    else if (result == NFD_CANCEL) {
+        std::cout << "User cancelled dialog" << std::endl;
+        NFD_Quit();
+        return;
+    }
+    else {
+        std::cerr << "Export file dialog error: " << NFD_GetError() << std::endl;
+        NFD_Quit();
+        return;
+    }
+    NFD_Quit();
+
+    // PNG is the only supported format
+    if (export_path.extension() != ".png")
+        export_path.replace_extension(".png");
+
+    // Export document
+    doc_service.export_png(export_path, doc_locked);
 }
 
 inline void MenuBar::fit_to_screen() {

@@ -1,8 +1,10 @@
 #pragma once
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_uint2.hpp>
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 #include "canvas_layer.hpp"
 #include "uuid_v4.h"
 
@@ -20,6 +22,11 @@ public: // Rendering
      * @param position The center position of where on the screen the canvas should be rendered.
      */
     virtual void render(glm::vec2 position) = 0;
+    /**
+     * @brief Flattens all visible layers and returns the result as tightly
+     * packed RGBA8 pixels, row-major, 4 bytes per pixel.
+     */
+    virtual std::vector<std::uint8_t> read_composited_pixels() = 0;
 
 public: // Layer management
     virtual int get_layer_count() const noexcept = 0;

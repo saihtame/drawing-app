@@ -89,6 +89,14 @@ void DocumentService::save_document(std::filesystem::path path, std::weak_ptr<Do
 #endif
 }
 
+void DocumentService::export_png(std::filesystem::path path, std::weak_ptr<Domain::Documents::Document> document) {
+    serializer.export_png(path, document);
+
+#ifdef _DEBUG
+    std::cout << "Exported document to " << path << std::endl;
+#endif
+}
+
 void DocumentService::register_observer(std::weak_ptr<DocumentServiceObserver> observer) {
     // Check value
     if (observer.expired()) {

@@ -21,6 +21,7 @@ public: // Ctors
 /* Canvas Implementation */
 public: // Render
     void render(glm::vec2 position) override;
+    std::vector<std::uint8_t> read_composited_pixels() override;
 public: // Layer management
     [[nodiscard]] int get_layer_count() const noexcept override;
     [[nodiscard]] std::weak_ptr<Domain::Documents::CanvasLayer> get_layer(int ind) const override;
@@ -37,6 +38,7 @@ public: // Zoom
 
 private: // Helpers
     std::weak_ptr<GpuCanvasLayer> get_gpu_layer(UUIDv4::UUID uuid);
+    void composite_layers();
 
 private: // Data
     glm::vec2 screen_pos;

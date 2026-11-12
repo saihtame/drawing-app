@@ -138,6 +138,49 @@ std::shared_ptr<Domain::Documents::Document> DocumentFileSerializer::load_docume
     return doc;
 }
 
+void DocumentFileSerializer::export_png(std::filesystem::path path, const std::weak_ptr<Domain::Documents::Document> &document) const {
+    std::cout << "Exporting document to path " << path << std::endl;
+
+    // Lock document
+    auto doc_locked = document.lock();
+    if (doc_locked == nullptr) {
+        std::cerr << "Could not export document. Null document." << std::endl;
+        return;
+    }
+
+    // Get canvas
+    auto canvas = doc_locked->get_canvas();
+    auto canvas_locked = canvas.lock();
+    if (canvas_locked == nullptr) {
+        std::cerr << "Could not export document. Null canvas." << std::endl;
+        return;
+    }
+
+    // Flatten all visible layers
+    const glm::uvec2 canvas_size = canvas_locked->get_size();
+    auto pixels = canvas_locked->read_composited_pixels();
+
+    // The canvas holds premultiplied alpha, PNG stores straight alpha
+    for (size_t i = 0; i < pixels.size(); i += 4) {
+        const unsigned int alpha = pixels[i + 3];
+        if (alpha == 0 || alpha == 255)
+            continue;
+        for (size_t channel = 0; channel < 3; channel++) {
+            const unsigned int value = pixels[i + channel] * 255u / alpha;
+            pixels[i + channel] = static_cast<std::uint8_t>(value > 255u ? 255u : value);
+        }
+    }
+
+    // Encode and write the PNG
+    if (!stbi_write_png(path.c_str(),
+                        static_cast<int>(canvas_size.x),
+                        static_cast<int>(canvas_size.y),
+                        4, pixels.data(),
+                        static_cast<std::ptrdiff_t>(canvas_size.x) * 4)) {
+        std::cerr << "Could not write PNG to " << path << std::endl;
+    }
+}
+
 void DocumentFileSerializer::save_document(std::filesystem::path path, const std::weak_ptr<Domain::Documents::Document> &document) const {
     std::cout << "Saving document to path " << path << std::endl;
 

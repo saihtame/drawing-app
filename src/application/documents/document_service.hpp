@@ -39,6 +39,7 @@ public: // Lookup
 public: // Serialization
     void load_document(std::filesystem::path path);
     void save_document(std::filesystem::path path, std::weak_ptr<Domain::Documents::Document> document);
+    void export_png(std::filesystem::path path, std::weak_ptr<Domain::Documents::Document> document);
 
 public: // Observers
     void register_observer(std::weak_ptr<DocumentServiceObserver> observer);
