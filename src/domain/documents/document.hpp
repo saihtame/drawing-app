@@ -19,7 +19,7 @@ public: // Ctors
 private: // Dependencies
     const CanvasFactory& canvas_factory;
 
-public: // Getters
+public: // Getters and setters
     /**
      * @brief Returns a weak_ptr to the canvas.
      * The canvas is created imediately, so this should always return a non-expired ptr.

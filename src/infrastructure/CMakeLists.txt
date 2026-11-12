@@ -19,6 +19,9 @@ target_include_directories(${INFRASTRUCTURE_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/s
 target_link_libraries(${INFRASTRUCTURE_TARGET}
     PRIVATE
         glad
+        miniz
+        glaze::glaze
+        stb::image
     PUBLIC
         ${APPLICATION_TARGET}
         drawing_app_config

@@ -76,7 +76,7 @@ inline void MenuBar::load_file() {
     nfdu8filteritem_t filters[1] = { { "Project File", "dproj" } };
     nfdopendialogu8args_t args = {0};
     args.filterList = filters;
-    args.filterCount = 2;
+    args.filterCount = 1;
     nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
     if (result == NFD_OKAY)
     {
